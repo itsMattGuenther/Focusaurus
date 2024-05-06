@@ -1,60 +1,77 @@
-console.log("popup.js is loaded");
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOMContentLoaded");
-    const form = document.getElementById('blockForm');
-    console.log('Form: ', form);
-    const message = document.getElementById('message');
+const websiteInput = document.getElementById('websiteInput');
+const addWebsiteButton = document.getElementById('addWebsite');
+const blockedList = document.getElementById('blockedList');
+const enableFocusButton = document.getElementById('enableFocus');
 
-    form.addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
+// Focus state variable to determine if we're in focus mode or not
+let focusModeEnabled = false;
 
-        // Get values from the form
-        const domains = form.elements['domain'].value.trim().split(',');
-        const blockTimeValue = form.elements['blockTime'].value.trim();
-        const disableRule = form.elements['disableRule'].checked;
-
-        // Basic validation
-        if (domains.some(domain => domain === '') || blockTimeValue === '') {
-            message.textContent = 'Please enter both domains and block time.';
-            return;
-        }
-
-        // Parse block time
-        const [hours, minutes] = blockTimeValue.split(':');
-
-        // Create block time Date object
-        const currentTime = new Date();
-        const blockTimeDate = new Date(
-            currentTime.getFullYear(),
-            currentTime.getMonth(),
-            currentTime.getDate(),
-            hours,
-            minutes
-        );
-
-        // Store the blocked domains, block time, and disable status in storage
-        domains.forEach(domain => {
-            const rule = { blockTime: blockTimeValue, disableRule }; 
-            chrome.storage.local.set({ [domain.trim()]: rule }, function() {
-                message.textContent = 'Domains blocked until ' + blockTimeValue + '.';
-            });
-        });
-
-        // ... inside your event listener ...
-
-  console.log('Form submitted!'); 
-  console.log('Domains:', domains);
-  console.log('Block Time Value:', blockTimeValue);
-  console.log('Hours:', hours, 'Minutes:', minutes);
-
- // ... rest of your code ...
-
-
-    });
+// Load existing blocked websites from storage
+chrome.storage.sync.get(['blockedWebsites'], (data) => {
+    const blockedWebsites = data.blockedWebsites || []; // Default to empty array
+    displayBlockedWebsites(blockedWebsites);
 });
 
-// Function to validate domain format (You can make this more robust if needed)
-function isValidDomain(domain) {
-  return /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/.test(domain);
+// Adding a website to block
+addWebsiteButton.addEventListener('click', () => {
+    const website = websiteInput.value.trim();
+    if (website) {
+        chrome.storage.sync.get(['blockedWebsites'], (data) => {
+            let blockedWebsites = data.blockedWebsites || [];
+            blockedWebsites.push(website);
+            chrome.storage.sync.set({'blockedWebsites': blockedWebsites}, () => {
+                displayBlockedWebsites(blockedWebsites);
+                websiteInput.value = ''; 
+            });
+        });
+    }
+});
+
+// Enabling Focus Mode
+enableFocusButton.addEventListener('click', () => {
+    focusModeEnabled = !focusModeEnabled;
+    enableFocusButton.classList.toggle('power-on'); 
+    const action = focusModeEnabled ? 'enableFocus' : 'disableFocus'; 
+    chrome.runtime.sendMessage({ action });
+    // enableFocusButton.textContent = focusModeEnabled ? 'Disable' : 'Focus Mode';
+    // Save the focusModeEnabled state to storage
+    chrome.storage.sync.set({ 'focusModeEnabled': focusModeEnabled });
+});
+
+// Maintain focus mode state
+chrome.storage.sync.get(['focusModeEnabled'], (data) => {
+    focusModeEnabled = data.focusModeEnabled || false;
+    // enableFocusButton.textContent = focusModeEnabled ? 'Disable' : 'Focus Mode';
+}); 
+
+// Dynamically updates the visual list of blocked websites within the popup.
+function displayBlockedWebsites(websites) {
+    blockedList.innerHTML = ''; // Clear existing list
+    const ul = document.createElement('ul');
+    websites.forEach(website => {
+        const li = document.createElement('li');
+        li.textContent = website;
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.classList.add('remove-button');
+
+        removeButton.addEventListener('click', () => {
+            removeWebsite(website, li);
+        });
+
+        li.appendChild(removeButton);
+        ul.appendChild(li);
+    });
+    blockedList.appendChild(ul);
 }
 
+// This function handles the removal of a website from both the Chrome storage and the ui
+function removeWebsite(website, listItem) {
+    chrome.storage.sync.get(['blockedWebsites'], (data) => {
+        let blockedWebsites = data.blockedWebsites || [];
+        blockedWebsites = blockedWebsites.filter(item => item !== website);
+        chrome.storage.sync.set({'blockedWebsites': blockedWebsites}, () => {
+            listItem.remove(); // Remove the list item from the display
+        });
+    });
+}
