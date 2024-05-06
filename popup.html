@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Focusaurus</title>
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+  <h2>Focusaurus</h2>
+  <form id="blockForm">
+    <label for="domain">Enter the domains to block (separated by commas):</label><br>
+    <input type="text" id="domain" name="domain" required><br>
+    <label for="blockTime">Enter the time to unblock (HH:MM format):</label><br>
+    <input type="time" id="blockTime" name="blockTime" required><br>
+    <label for="disableRule">Disable rule:</label>
+    <input type="checkbox" id="disableRule" name="disableRule"><br>
+    <input type="submit" value="Block">
+  </form>
+  <p id="message"></p>
+
+<script src="popup.js"></script>
+</body>
+</html>
