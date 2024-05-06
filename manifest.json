@@ -6,7 +6,8 @@
     "permissions": [
       "declarativeNetRequest", 
       "storage",
-      "activeTab"
+      "activeTab",
+      "webRequest"
     ],
     "background": {
       "service_worker": "background.js"
