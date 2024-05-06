@@ -1,5 +1,5 @@
 chrome.declarativeNetRequest.getDynamicRules(function (rules) {
-    // Remove any existing FocusBlocker rules
+    // Remove any existing Focusaurus rules
     const FocusaurusBlockerRuleIds = rules.map(rule => {
       if (rule.condition.urlFilter.includes('Focusaurus')) return rule.id;
     }).filter(Boolean);
