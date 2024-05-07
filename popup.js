@@ -33,7 +33,7 @@ enableFocusButton.addEventListener('click', () => {
     enableFocusButton.classList.toggle('power-on'); 
     const action = focusModeEnabled ? 'enableFocus' : 'disableFocus'; 
     chrome.runtime.sendMessage({ action });
-    // enableFocusButton.textContent = focusModeEnabled ? 'Disable' : 'Focus Mode';
+    enableFocusButton.textContent = focusModeEnabled ? 'Disable' : 'Focus Mode';
     // Save the focusModeEnabled state to storage
     chrome.storage.sync.set({ 'focusModeEnabled': focusModeEnabled });
 });
@@ -41,7 +41,7 @@ enableFocusButton.addEventListener('click', () => {
 // Maintain focus mode state
 chrome.storage.sync.get(['focusModeEnabled'], (data) => {
     focusModeEnabled = data.focusModeEnabled || false;
-    // enableFocusButton.textContent = focusModeEnabled ? 'Disable' : 'Focus Mode';
+    enableFocusButton.textContent = focusModeEnabled ? 'Disable' : 'Focus Mode';
 }); 
 
 // Dynamically updates the visual list of blocked websites within the popup.

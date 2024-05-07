@@ -2,7 +2,6 @@ body {
   font-family: 'Arial', sans-serif; 
   background-color: #e8f9e8; /* A light green shade */
   color: #333; /* Dark text for contrast */
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3); /* Soft shadow */
   margin: 20px;
   padding: 20px;
   border-radius: 8px;
@@ -12,17 +11,6 @@ h1 {
   color: #286628; /* Darker green for the header */
   text-align: center;
   margin-bottom: 20px;
-}
-
-/* Let's create a simple dinosaur head! */
-h1::before {
-  content: '';
-  display: block;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #1a4d1a; /* A darker green for the dino */
-  margin: 0 auto 10px auto; /* Center above the text */
 }
 
 input[type="text"] {
@@ -48,8 +36,6 @@ button:hover {
 }
 
 #blockedList {
-  margin-top: 20px;
-  border: 1px solid #ddd;
   border-radius: 4px;
   padding: 15px; 
 }
@@ -77,27 +63,4 @@ button:hover {
 
 .remove-button:hover {
   color: #9a2525; /* Darker red on hover */
-}
-
-#enableFocus {
-  background-color: #999; /* Gray for powered-off state */
-  color: #555;           /* Dimmed text when powered off */
-  border-radius: 30px;   /* Pill-shaped button */
-}
-
-/* Styling the power symbol */
-#enableFocus::before {
-  content: '\23FB' !important; /* Unicode for a simple power symbol */
-  font-size: 18px; 
-}
-
-/* Style for powered-on state */
-#enableFocus.power-on { 
-  background-color: #47a147;  /* Bright green when powered on */
-  color: white;
-}
-
-/* Styling the power symbol when its on*/
-#enableFocus.power-on::before { 
-  content: '\23FC'; /* Unicode for a 'powered on' symbol */
 }
