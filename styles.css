@@ -1,29 +1,29 @@
 body {
   font-family: 'Arial', sans-serif; 
-  background-color: #e8f9e8; /* A light green shade */
+  background-color: #333333; /* A light green shade */
   color: #333; /* Dark text for contrast */
-  margin: 20px;
-  padding: 20px;
+  width: 300px;
   border-radius: 8px;
 }
 
 h1 {
   color: #286628; /* Darker green for the header */
   text-align: center;
-  margin-bottom: 20px;
+  margin: 5%;
 }
 
 input[type="text"] {
+  height: 30px;
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  margin-bottom: 10px;
+  margin: 10px;
   width: calc(100% - 80px); /* Space for the button */
 }
 
 button {
   background-color: #47a147; /* Green for buttons */
-  color: white;
+  color: #F8F8F8;
   padding: 10px 15px;
   border: none;
   border-radius: 4px;
@@ -37,7 +37,10 @@ button:hover {
 
 #blockedList {
   border-radius: 4px;
-  padding: 15px; 
+  margin-left: -5px;
+  margin-right: -5px;
+  /* padding: 15px; */
+  color: #F8F8F8;
 }
 
 #blockedList ul {
@@ -46,16 +49,27 @@ button:hover {
 }
 
 #blockedList li {
+  height: 69px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+}
+
+#blockedList li:hover {
+  display: flex;
+  background-color: #1d1d1d;
 }
 
 .remove-button {
-  background: none;
+  background: #b83535;
   border: none;
-  color: #b83535; /* A hint of red for removal */
+  font-weight: bold;
+  color: #f8f8f8; /* A hint of red for removal */
   cursor: pointer;
   font-size: 14px;
   transition: color 0.3s;
@@ -63,4 +77,7 @@ button:hover {
 
 .remove-button:hover {
   color: #9a2525; /* Darker red on hover */
+  background-color: #1d1d1d;
+  border: 2px solid #9a2525;
+  border-color: #9a2525;
 }
