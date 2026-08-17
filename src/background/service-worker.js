@@ -12,6 +12,7 @@
 
 import { compileRules } from './rules.js';
 import { resolveMood } from './mood.js';
+import { badgeText, sessionActive } from '../shared/session.js';
 import {
   DEFAULT_SETTINGS,
   OVERRIDE_DELAYS,
@@ -36,12 +37,9 @@ const INTERSTITIAL_PATH = '/src/blocked/blocked.html';
 const ALARM_SESSION_END = 'session-end';
 const ALARM_OVERRIDE = 'override-expiry';
 const ALARM_HOUSEKEEPING = 'housekeeping';
+const ALARM_BADGE = 'badge-tick';
 
 /* --- Enforcement --------------------------------------------------------- */
-
-function sessionActive(session, now = Date.now()) {
-  return Boolean(session && session.endsAt > now);
-}
 
 /**
  * Rebuild the entire dynamic rule set from current state.
@@ -84,11 +82,21 @@ async function reconcile() {
 /** Keep alarms in step with state. Re-created rather than adjusted, since
  *  chrome.alarms has no update primitive. */
 async function syncAlarms(session, overrides) {
-  await chrome.alarms.clear(ALARM_SESSION_END);
-  await chrome.alarms.clear(ALARM_OVERRIDE);
+  await Promise.all([
+    chrome.alarms.clear(ALARM_SESSION_END),
+    chrome.alarms.clear(ALARM_OVERRIDE),
+    chrome.alarms.clear(ALARM_BADGE),
+  ]);
 
   if (sessionActive(session)) {
     chrome.alarms.create(ALARM_SESSION_END, { when: session.endsAt });
+    // The badge is a countdown, so it needs its own heartbeat. Without this it
+    // only ever repainted when rules were reconciled, which meant it froze at
+    // whatever the clock said during the last session start or override —
+    // visibly drifting from the popup's live countdown.
+    // 1 minute is the floor Chrome reliably honors, and it's the badge's own
+    // resolution, so there's nothing to gain from going faster.
+    chrome.alarms.create(ALARM_BADGE, { periodInMinutes: 1 });
   }
   if (overrides.length) {
     const soonest = Math.min(...overrides.map((o) => o.expiresAt));
@@ -97,17 +105,29 @@ async function syncAlarms(session, overrides) {
 }
 
 /* --- Badge ---------------------------------------------------------------
-   Remaining minutes on the toolbar icon. Cheap, and it means you can read
-   session state without opening anything. */
+   The only always-visible surface in the product, so it has to be right. Text
+   is recomputed from `endsAt` every paint (see session.js) rather than
+   decremented, so a skipped paint is late but never wrong. */
 
 async function paintBadge(session, now = Date.now()) {
-  if (!sessionActive(session, now)) {
-    await chrome.action.setBadgeText({ text: '' });
+  const text = badgeText(session, now);
+  await chrome.action.setBadgeText({ text });
+  if (text) {
+    await chrome.action.setBadgeBackgroundColor({ color: '#4a6741' }); // --moss
+  }
+}
+
+/** Badge heartbeat. Deliberately cheaper than a full reconcile — the rule set
+ *  hasn't changed, only the clock. Also acts as a safety net: if the
+ *  session-end alarm were ever dropped or delayed, this notices the session has
+ *  expired and closes it out properly. */
+async function tickBadge() {
+  const local = await getLocal();
+  if (local.session && !sessionActive(local.session)) {
+    await endSession();
     return;
   }
-  const minsLeft = Math.max(1, Math.ceil((session.endsAt - now) / 60000));
-  await chrome.action.setBadgeText({ text: String(minsLeft) });
-  await chrome.action.setBadgeBackgroundColor({ color: '#4a6741' }); // --moss
+  await paintBadge(local.session);
 }
 
 /* --- Sessions ------------------------------------------------------------ */
@@ -184,6 +204,10 @@ async function getState() {
 
   const now = new Date();
   const active = sessionActive(local.session, now.getTime());
+
+  // Repaint while we're here. The popup runs its own live countdown, so without
+  // this the two could visibly disagree at the moment you're looking at both.
+  await paintBadge(active ? local.session : null, now.getTime());
 
   const { mood, because } = resolveMood({
     now,
@@ -313,9 +337,13 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await reconcile();
     return;
   }
+  if (alarm.name === ALARM_BADGE) {
+    await tickBadge();
+    return;
+  }
   if (alarm.name === ALARM_HOUSEKEEPING) {
     await pruneUsage();
-    await reconcile(); // also keeps the badge honest across a long session
+    await reconcile();
   }
 });
 

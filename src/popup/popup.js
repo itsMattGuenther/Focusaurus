@@ -9,6 +9,7 @@
 
 import { renderDoug, MOODS } from '../shared/doug.js';
 import { moodCopy } from '../shared/copy.js';
+import { isOpenEnded } from '../shared/session.js';
 
 const els = {
   statusChip: document.getElementById('statusChip'),
@@ -53,25 +54,36 @@ function renderSession(session) {
   clearInterval(countdownTimer);
   if (!active) return;
 
-  els.countdownNote.textContent =
-    session.plannedMinutes >= 720
-      ? 'Open-ended — ends when you say so'
-      : `${session.plannedMinutes} minute session`;
+  const openEnded = isOpenEnded(session);
+
+  els.countdownNote.textContent = openEnded
+    ? 'Open-ended — ends when you say so'
+    : `${session.plannedMinutes} minute session`;
+
+  const clock = (ms) => {
+    const total = Math.floor(ms / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return h
+      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      : `${m}:${String(s).padStart(2, '0')}`;
+  };
 
   const tick = () => {
+    // An open-ended session counts UP from its start. Counting down from the
+    // 12-hour backstop would be technically accurate and completely useless.
+    if (openEnded) {
+      els.countdown.textContent = clock(Date.now() - session.startedAt);
+      return;
+    }
     const ms = session.endsAt - Date.now();
     if (ms <= 0) {
       clearInterval(countdownTimer);
       refresh(); // the worker's alarm has ended it; pull fresh state
       return;
     }
-    const total = Math.floor(ms / 1000);
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    const s = total % 60;
-    els.countdown.textContent = h
-      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-      : `${m}:${String(s).padStart(2, '0')}`;
+    els.countdown.textContent = clock(ms);
   };
   tick();
   countdownTimer = setInterval(tick, 1000);

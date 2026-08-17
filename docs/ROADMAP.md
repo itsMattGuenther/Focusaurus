@@ -43,8 +43,12 @@ ship placeholder chrome and redo it later, so the following moved up from v0.2:
 unlike `block` — without it the rules match nothing and fail silently
 ([ADR-10](DESIGN.md#adr-10-declarativenetrequestwithhostaccess--explicit-host-permissions)).
 
-**Exit criteria:** ⏳ not yet verified in a real browser — see the smoke test at
-the bottom of this file.
+**Exit criteria: ✅ verified in Chrome** on 2026-08-17. Blocking, path scoping,
+anchoring, the override return path, sub-resource safety, and persistence across
+a browser restart all behaved correctly. Dark mode confirmed good.
+
+One bug found and fixed: the badge froze instead of counting down. One step
+(#14, unattended session expiry) is still untested.
 
 ---
 
@@ -267,3 +271,29 @@ Run this once after loading unpacked:
     same character in both themes
 
 Anything that fails here is a v0.1 bug, not a v0.2 feature.
+
+### Results — 2026-08-17
+
+| Steps | Result |
+| --- | --- |
+| 1–8 loading, popup, basic blocking, attempt counting | ✅ |
+| 9 path scoping — `youtube.com/shorts` blocks, `youtube.com` loads | ✅ |
+| 10 anchoring — arriving via a Google result still blocks the site | ✅ |
+| 11 override returns to the original deep path | ✅ |
+| 12 sub-resources unaffected — unrelated video played fine | ✅ |
+| 13 persistence across a browser restart | ✅ |
+| 14 unattended session expiry clears the badge | ⏳ untested |
+| 15–16 dark mode / reduced motion | ✅ dark mode confirmed |
+
+**Bug found:** the toolbar badge froze rather than counting down — it read 49
+while 47 minutes remained. Cause: the badge was only painted during a rule
+reconcile (session start, override, settings change), so it was a snapshot, not
+a countdown. Fixed with a dedicated 1-minute `badge-tick` alarm, a repaint
+whenever the popup asks for state, and `shared/session.js` deriving the text
+from `endsAt` on every paint so a skipped paint is late but never wrong.
+
+**How to finish #14 quickly:** temporarily change a chip's `data-minutes` to `1`
+in `src/popup/popup.html`, reload the extension, start that session, close the
+popup, and watch the badge clear on its own. The new badge tick also
+double-checks expiry, so a dropped `session-end` alarm now self-heals within a
+minute instead of leaving a session running forever.
