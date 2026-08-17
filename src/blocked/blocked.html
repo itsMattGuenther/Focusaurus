@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blocked — Focusaurus</title>
+  <link rel="stylesheet" href="../shared/tokens.css">
+  <link rel="stylesheet" href="../shared/doug.css">
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <span class="masthead__mark">Focusaurus</span>
+      <span class="label" id="tagNumber">Field note</span>
+    </header>
+
+    <main class="stage">
+      <figure class="portrait">
+        <div class="portrait__vignette" aria-hidden="true"></div>
+        <div class="portrait__doug" id="dougMount"></div>
+      </figure>
+
+      <div class="says">
+        <p class="says__line display" id="line">Not right now.</p>
+        <p class="says__sub" id="subline"></p>
+
+        <!-- Specimen tag: the field-guide label. Metadata, set like a museum
+             card rather than a dashboard. -->
+        <dl class="tag" id="tag">
+          <div class="tag__cell">
+            <dt class="label">Site</dt>
+            <dd class="tag__value tag__value--site" id="siteValue">—</dd>
+          </div>
+          <div class="tag__cell">
+            <dt class="label">Reached for</dt>
+            <dd class="tag__value" id="attemptsValue">—</dd>
+          </div>
+          <div class="tag__cell">
+            <dt class="label">Session ends</dt>
+            <dd class="tag__value" id="sessionValue">—</dd>
+          </div>
+        </dl>
+
+        <div class="actions">
+          <button type="button" class="btn btn--primary" id="closeBtn">
+            Close this tab
+          </button>
+          <button type="button" class="btn btn--quiet" id="overrideBtn" disabled>
+            <span id="overrideLabel">Just a minute…</span>
+          </button>
+        </div>
+        <p class="actions__note" id="overrideNote"></p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="blocked.js"></script>
+</body>
+</html>

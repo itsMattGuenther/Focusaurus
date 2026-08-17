@@ -1,0 +1,57 @@
+/* ==========================================================================
+   Doug — presentation and motion
+   Geometry lives in doug.js; this file only sizes and animates him.
+   ========================================================================== */
+
+.doug {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible; /* the locked_in sparkles sit outside the viewBox edge */
+}
+
+/* Breathing. Transform-origin sits at his feet so he swells upward rather
+   than floating — anchoring the motion is what keeps it from looking like a
+   pulsing logo. */
+.doug--breathing .doug__body {
+  transform-origin: 100px 188px;
+  animation: doug-breathe 4.2s var(--ease-soft) infinite;
+}
+
+@keyframes doug-breathe {
+  0%,
+  100% { transform: scaleY(1) scaleX(1); }
+  50%  { transform: scaleY(1.022) scaleX(0.995); }
+}
+
+/* Blink. Applied to the face group so lids/arcs all collapse together.
+   Long pause, fast blink — the timing is what sells it as alive. */
+.doug--breathing .doug__face {
+  transform-origin: 152px 58px;
+  animation: doug-blink 7.3s steps(1, end) infinite;
+}
+
+@keyframes doug-blink {
+  0%, 96%   { transform: scaleY(1); }
+  97%, 98%  { transform: scaleY(0.08); }
+  99%, 100% { transform: scaleY(1); }
+}
+
+/* Asleep Doug shouldn't blink, and he breathes slower and deeper. */
+.doug[data-mood='asleep'] .doug__face { animation: none; }
+.doug[data-mood='asleep'].doug--breathing .doug__body {
+  animation-duration: 6.5s;
+}
+
+/* Locked-in sparkles twinkle out of phase with each other. */
+.doug[data-mood='locked_in'] .doug__face > g path:first-child {
+  animation: doug-twinkle 2.4s var(--ease-soft) infinite;
+}
+.doug[data-mood='locked_in'] .doug__face > g path:last-child {
+  animation: doug-twinkle 2.4s var(--ease-soft) 0.8s infinite;
+}
+
+@keyframes doug-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%      { opacity: 1;    transform: scale(1.1); }
+}

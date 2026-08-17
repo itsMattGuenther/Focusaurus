@@ -1,0 +1,25 @@
+Bundled fonts
+=============
+
+Both typefaces below are licensed under the SIL Open Font License, Version 1.1,
+which permits bundling and redistribution inside this extension.
+
+Fraunces
+  Display / headline face. Variable, with optical-size (opsz) and weight axes.
+  Copyright (c) The Fraunces Project Authors
+  https://github.com/undercasetype/Fraunces
+  Latin subset only.
+
+Public Sans
+  Body and UI face. Variable weight axis.
+  Copyright (c) The Public Sans Project Authors
+  https://github.com/uswds/public-sans
+  Latin subset only.
+
+Full license text: https://openfontlicense.org/
+
+Why these are vendored rather than linked
+-----------------------------------------
+An extension's Content Security Policy forbids loading resources from remote
+hosts, and Focusaurus makes no network requests by design (see docs/DESIGN.md
+§7). Both files are the latin subset only, ~94KB combined.

@@ -1,0 +1,207 @@
+/* ==========================================================================
+   The interstitial — the hero surface
+   --------------------------------------------------------------------------
+   This page, not the popup, is the product (DESIGN.md ADR-3). It's the moment
+   attention is highest and intent is weakest, so it gets the real typography,
+   the large Doug, and the one orchestrated entrance animation in the app.
+
+   Composition is a deliberate asymmetry: Doug holds the left third at a size
+   that's slightly too big to be decorative, and the type block runs long to
+   the right. A centered layout here would read as an error page — which is
+   exactly the register we're avoiding.
+   ========================================================================== */
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: var(--space-6) var(--space-7);
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* Ledger edge — a single moss hairline across the very top of the page. */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--moss);
+  opacity: 0.85;
+}
+
+/* --- Masthead ------------------------------------------------------------ */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--rule);
+  animation: rise var(--dur-slow) var(--ease-out) both;
+}
+
+.masthead__mark {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-opsz-low);
+  font-weight: 700;
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* --- Stage --------------------------------------------------------------- */
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(220px, 34%) 1fr;
+  gap: var(--space-8);
+  align-items: center;
+  padding: var(--space-7) 0;
+}
+
+@media (max-width: 780px) {
+  .page { padding: var(--space-5) var(--space-4); }
+  .stage {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    padding: var(--space-5) 0;
+    text-align: center;
+  }
+  .portrait { max-width: 230px; margin: 0 auto; }
+  .tag { text-align: left; }
+}
+
+/* --- Doug's portrait ----------------------------------------------------- */
+
+.portrait {
+  position: relative;
+  margin: 0;
+  animation: rise var(--dur-slow) var(--ease-out) 120ms both;
+}
+
+/* A soft moss disc behind him. Keeps a big vector figure from floating in
+   dead space, and reads as the plate in a field guide. */
+.portrait__vignette {
+  position: absolute;
+  inset: 6% -4% 2% -4%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 45%, var(--moss-wash) 0%, transparent 72%);
+}
+
+.portrait__doug { position: relative; }
+
+/* --- What Doug says ------------------------------------------------------ */
+
+.says { min-width: 0; }
+
+.says__line {
+  margin: 0;
+  font-family: var(--font-display);
+  /* High optical size for display type: tighter, more dramatic letterforms.
+     This is the payoff for bundling a variable font. */
+  font-variation-settings: var(--display-opsz-hero);
+  font-weight: 600;
+  font-size: clamp(var(--text-xl), 5.2vw, var(--text-3xl));
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+  animation: rise var(--dur-slow) var(--ease-out) 200ms both;
+}
+
+.says__sub {
+  margin: var(--space-4) 0 0;
+  max-width: 44ch;
+  font-size: var(--text-md);
+  color: var(--ink-soft);
+  animation: rise var(--dur-slow) var(--ease-out) 300ms both;
+}
+.says__sub:empty { display: none; }
+
+@media (max-width: 780px) {
+  .says__sub { margin-inline: auto; }
+}
+
+/* --- Specimen tag -------------------------------------------------------- */
+
+.tag {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 0;
+  margin: var(--space-6) 0 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  background: var(--paper-raised);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: rise var(--dur-slow) var(--ease-out) 380ms both;
+}
+
+.tag__cell {
+  padding: var(--space-3) var(--space-5);
+  border-right: 1px solid var(--rule);
+}
+.tag__cell:last-child { border-right: 0; }
+
+.tag__value {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The site name is the one piece of data the user came here about. */
+.tag__value--site {
+  font-weight: 700;
+  color: var(--clay);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .tag { grid-template-columns: 1fr; }
+  .tag__cell { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .tag__cell:last-child { border-bottom: 0; }
+}
+
+/* --- Actions ------------------------------------------------------------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  animation: rise var(--dur-slow) var(--ease-out) 460ms both;
+}
+
+@media (max-width: 780px) {
+  .actions { justify-content: center; }
+}
+
+.actions__note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+  animation: rise var(--dur-slow) var(--ease-out) 520ms both;
+}
+.actions__note:empty { display: none; }
+
+/* The override button counts down before it unlocks. The disabled state has
+   to look deliberate rather than broken, so it keeps its border and dims
+   only the label. */
+#overrideBtn:disabled {
+  opacity: 1;
+  color: var(--ink-faint);
+  border-color: var(--rule);
+  border-style: dashed;
+}
+
+/* --- Entrance -----------------------------------------------------------
+   One orchestrated page load with staggered delays does more for perceived
+   quality than a dozen scattered micro-interactions. */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}

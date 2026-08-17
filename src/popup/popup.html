@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Focusaurus</title>
+  <link rel="stylesheet" href="../shared/tokens.css">
+  <link rel="stylesheet" href="../shared/doug.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="masthead">
+    <span class="masthead__mark">Focusaurus</span>
+    <span class="label" id="statusChip">—</span>
+  </header>
+
+  <!-- Doug and his current read on the day. The mood IS the interface: you
+       should be able to close the popup after this row and know where you
+       stand. -->
+  <section class="hero">
+    <figure class="hero__portrait">
+      <div class="hero__vignette" aria-hidden="true"></div>
+      <div id="dougMount"></div>
+    </figure>
+    <div class="hero__text">
+      <p class="hero__says display" id="moodLine">…</p>
+      <p class="hero__because" id="moodBecause"></p>
+    </div>
+  </section>
+
+  <!-- Session control -->
+  <section class="panel">
+    <h2 class="label">Session</h2>
+
+    <div id="sessionIdle">
+      <div class="chips" role="group" aria-label="Session length">
+        <button type="button" class="chip" data-minutes="25">25m</button>
+        <button type="button" class="chip chip--on" data-minutes="50">50m</button>
+        <button type="button" class="chip" data-minutes="90">90m</button>
+        <button type="button" class="chip" data-minutes="720">Open</button>
+      </div>
+      <button type="button" class="btn btn--primary btn--block" id="startBtn">
+        Start focusing
+      </button>
+    </div>
+
+    <div id="sessionActive" hidden>
+      <p class="countdown" id="countdown">--:--</p>
+      <p class="countdown__note" id="countdownNote"></p>
+      <button type="button" class="btn btn--quiet btn--block" id="endBtn">
+        End session
+      </button>
+    </div>
+  </section>
+
+  <!-- Today -->
+  <section class="panel panel--row">
+    <h2 class="label">Reached for a blocked site</h2>
+    <span class="stat" id="attemptsToday">0</span>
+  </section>
+
+  <!-- Blocklist -->
+  <section class="panel">
+    <h2 class="label">
+      Blocking <span class="label__count" id="siteCount"></span>
+    </h2>
+
+    <form class="add" id="addForm">
+      <input type="text" class="field" id="siteInput" placeholder="instagram.com"
+             autocomplete="off" spellcheck="false" aria-label="Site to block">
+      <button type="submit" class="btn btn--quiet">Add</button>
+    </form>
+    <p class="add__error" id="addError"></p>
+
+    <ul class="sites" id="siteList"></ul>
+
+    <!-- Cold start: packs seed a list so nobody has to sit and inventory
+         their own weaknesses before getting any value. -->
+    <div class="packs" id="packs" hidden>
+      <p class="packs__intro">Nothing blocked yet. Pick your poison:</p>
+      <div class="chips" id="packChips"></div>
+    </div>
+  </section>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
