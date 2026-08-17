@@ -56,9 +56,28 @@ the thesis holds.
 Much of the original v0.2 shipped in v0.1, so what's left is smaller and mostly
 about finish:
 
+- [ ] **Doug's proportions.** His v0.1 geometry was authored blind — no
+      rasterizer was available, so the paths were never seen before shipping.
+      He reads as recognizably a dinosaur but distinctly derpy. Deferring this
+      is cheap and safe: his appearance is confined to `doug.js` (geometry) and
+      `doug.css` (motion), and nothing else in the codebase knows what he looks
+      like. Consumers only ever call `renderDoug(el, mood)`. The contract is the
+      seven mood ids — hold those and he can be redrawn from scratch, or
+      replaced with commissioned art, without touching a single other file.
+      Prime suspects, in order:
+      - head/body ratio — the head ellipse (`rx 32`) may be too large against
+        the body (`rx 48`), and the `stroke-width: 34` neck reads thick
+      - eyes sit high and wide on the head; the snout ellipse likely makes a
+        lumpy silhouette where it overlaps the head rather than a clean muzzle
+      - brows may float detached above the eyes
+      - back plates may poke through at odd angles along the spine
+      - tune him against real sizes (340px interstitial, 92px popup, 16px
+        badge), not just the character sheet — the risk of perfecting him in
+        isolation is that he looks right there and wrong in situ
 - [ ] **Real icons drawn from Doug's geometry.** The 16/48/128 set is still
       prototype placeholder art. The 16px toolbar icon is the single
-      most-frequently-seen artwork in the product
+      most-frequently-seen artwork in the product. Blocked on the item above:
+      drawing icons from proportions that are about to change is wasted work
 - [ ] An options page: strictness, override length, schedule, dino name
 - [ ] Attempt history — "this week you reached for Reddit 40 times", reported
       neutrally

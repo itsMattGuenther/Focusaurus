@@ -24,9 +24,10 @@
   50%  { transform: scaleY(1.022) scaleX(0.995); }
 }
 
-/* Blink. Applied to the face group so lids/arcs all collapse together.
-   Long pause, fast blink — the timing is what sells it as alive. */
-.doug--breathing .doug__face {
+/* Blink. Scoped to the EYES group, never the whole face — animating the face
+   squashes his brows and mouth too, so his entire head appears to deflate.
+   Long pause, fast blink; the timing is what sells it as alive. */
+.doug--breathing .doug__eyes {
   transform-origin: 152px 58px;
   animation: doug-blink 7.3s steps(1, end) infinite;
 }
@@ -37,17 +38,24 @@
   99%, 100% { transform: scaleY(1); }
 }
 
-/* Asleep Doug shouldn't blink, and he breathes slower and deeper. */
-.doug[data-mood='asleep'] .doug__face { animation: none; }
+/* Moods drawn with already-closed arc eyes have nothing to blink. */
+.doug[data-mood='asleep'] .doug__eyes,
+.doug[data-mood='stoked'] .doug__eyes {
+  animation: none;
+}
+
+/* Asleep Doug breathes slower and deeper. */
 .doug[data-mood='asleep'].doug--breathing .doug__body {
   animation-duration: 6.5s;
 }
 
-/* Locked-in sparkles twinkle out of phase with each other. */
-.doug[data-mood='locked_in'] .doug__face > g path:first-child {
+/* Locked-in sparkles twinkle out of phase with each other. Targeted by class
+   rather than by child position — the eyes group is also a direct child of
+   .doug__face, so a positional selector would catch the wrong element. */
+.doug__sparkles path:first-child {
   animation: doug-twinkle 2.4s var(--ease-soft) infinite;
 }
-.doug[data-mood='locked_in'] .doug__face > g path:last-child {
+.doug__sparkles path:last-child {
   animation: doug-twinkle 2.4s var(--ease-soft) 0.8s infinite;
 }
 

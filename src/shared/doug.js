@@ -65,6 +65,10 @@ const SNOUT = `
 const EYE_L = { cx: 142, cy: 56, r: 8 };
 const EYE_R = { cx: 164, cy: 58, r: 8.5 };
 
+/* Eyes are wrapped in their own group so the blink animation can collapse
+   ONLY the eyes. Animating the whole face group squashes the brows and mouth
+   too, which reads as his entire head deflating. */
+
 /** Open eyes with optional pupil offset and an optional drooping lid. */
 function openEyes({ dx = 2, dy = 1, lid = 0 } = {}) {
   const eye = (e) => `
@@ -76,16 +80,17 @@ function openEyes({ dx = 2, dy = 1, lid = 0 } = {}) {
                   L${e.cx + e.r + 0.5} ${e.cy - e.r * (1 - lid)} Z"
               fill="var(--doug-body)"/>`
       : ''}`;
-  return eye(EYE_L) + eye(EYE_R);
+  return `<g class="doug__eyes">${eye(EYE_L)}${eye(EYE_R)}</g>`;
 }
 
-/** Closed/curved eyes — used for sleep (downward) and delight (upward). */
+/** Closed/curved eyes — used for sleep (downward) and delight (upward).
+ *  Already-shut eyes never blink; doug.css opts these moods out. */
 function curvedEyes(dir = 'down') {
   const sweep = dir === 'down' ? 1 : 0;
   const arc = (e) =>
     `<path d="M${e.cx - e.r} ${e.cy} a${e.r} ${e.r * 0.8} 0 0 ${sweep} ${e.r * 2} 0"
        stroke="var(--doug-ink)" stroke-width="3" stroke-linecap="round" fill="none"/>`;
-  return arc(EYE_L) + arc(EYE_R);
+  return `<g class="doug__eyes">${arc(EYE_L)}${arc(EYE_R)}</g>`;
 }
 
 const brow = (d) =>
@@ -119,7 +124,7 @@ const FACES = {
     brow('M133 44 Q142 38 152 44') +
     brow('M155 46 Q165 40 175 47') +
     mouth('M164 76 L184 73') +
-    `<g opacity="0.9">
+    `<g class="doug__sparkles" opacity="0.9">
        <path d="M104 46 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6 -6.4 -6.4 -2.6 6.4 -2.6 Z"
              fill="var(--moss-bright)"/>
        <path d="M118 28 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6 Z"
@@ -153,7 +158,8 @@ const FACES = {
     brow('M133 38 Q142 34 151 38') +
     brow('M156 40 Q165 36 174 40') +
     mouth('M167 76 Q174 80 181 75') +
-    `<g fill="var(--ink-faint)" font-family="var(--font-display)" font-weight="700" opacity="0.75">
+    `<g class="doug__zzz" fill="var(--ink-faint)" font-family="var(--font-display)"
+        font-weight="700" opacity="0.75">
        <text x="104" y="46" font-size="15">z</text>
        <text x="88" y="30" font-size="11">z</text>
        <text x="76" y="18" font-size="8">z</text>
