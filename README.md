@@ -41,7 +41,11 @@ a glance at a cartoon lizard instead of reading a dashboard.
   behavior, because it exposes the reflex rather than the elapsed time.
 - **Breathing-room overrides** — Doug sits there for 15 seconds before the
   "let me in for 5 minutes" button unlocks. Tunable; strict mode removes it.
-- **Starter packs** — five small lists to solve the cold-start problem.
+- **Category packs** — 77 sites across six toggleable categories (Social, Video,
+  Forums, News, Shopping, Games). Combine any of them; each chip shows whether
+  it's off, partial, or fully on. Sites that are only *partly* a trap are
+  path-scoped, so `linkedin.com/feed` is blocked while the rest of LinkedIn
+  keeps working.
 - **Local only** — no accounts, no servers, no analytics, no network requests.
 
 ## 📊 Why this might actually be useful

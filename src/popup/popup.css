@@ -147,6 +147,57 @@ body::after { display: none; }
   color: var(--moss);
 }
 
+.chip:disabled { opacity: 0.5; cursor: default; }
+
+/* --- Pack chips ---------------------------------------------------------
+   Three states, distinguishable without relying on color alone: `none` is a
+   plain outline with a count, `partial` is dashed with a fraction, `all` is
+   filled with a tick. */
+
+.chips--packs { margin-bottom: 0; }
+
+.chip--pack {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+}
+
+.chip__mark {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--paper-sunk);
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip--pack[data-state='partial'] {
+  border-color: var(--amber);
+  border-style: dashed;
+  color: var(--ink);
+}
+.chip--pack[data-state='partial'] .chip__mark {
+  background: var(--amber-wash);
+  color: var(--amber);
+}
+
+.chip--pack[data-state='all'] {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: var(--paper-raised);
+}
+.chip--pack[data-state='all']:hover {
+  background: var(--moss-bright);
+  border-color: var(--moss-bright);
+}
+.chip--pack[data-state='all'] .chip__mark {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--paper-raised);
+}
+
 .btn--block { width: 100%; }
 
 /* --- Countdown ---------------------------------------------------------- */
@@ -185,16 +236,38 @@ body::after { display: none; }
 }
 .add__error:empty { display: none; }
 
-/* --- Site list ---------------------------------------------------------- */
+/* --- Site list ----------------------------------------------------------
+   With several packs enabled this list runs to 70+ entries, so it scrolls
+   inside its own box. Otherwise the popup's controls would be pushed out of
+   reach and every interaction would start with a scroll. */
+
+.sites__scroll {
+  max-height: 216px;
+  overflow-y: auto;
+  margin-top: var(--space-4);
+  /* Inset shadows hint that there's more above and below, without needing a
+     scrollbar to be visible. */
+  background:
+    linear-gradient(var(--paper) 30%, rgba(0, 0, 0, 0)) top / 100% 18px no-repeat,
+    linear-gradient(rgba(0, 0, 0, 0), var(--paper) 70%) bottom / 100% 18px no-repeat;
+  background-attachment: local, local;
+}
+
+.sites__scroll:has(.sites:empty) { margin-top: 0; }
 
 .sites {
   list-style: none;
-  margin: var(--space-4) 0 0;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
 }
-.sites:empty { display: none; }
+
+.sites__empty {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+}
 
 .site {
   display: flex;
@@ -239,12 +312,3 @@ body::after { display: none; }
 .site__remove:hover { background: var(--clay-wash); color: var(--clay); }
 .site__remove:focus-visible { outline: 2px solid var(--clay); outline-offset: 1px; }
 
-/* --- Packs -------------------------------------------------------------- */
-
-.packs { margin-top: var(--space-4); }
-
-.packs__intro {
-  margin: 0 0 var(--space-3);
-  font-size: var(--text-sm);
-  color: var(--ink-soft);
-}
