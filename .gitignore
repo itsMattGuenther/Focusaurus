@@ -1,0 +1,18 @@
+# Extension signing key — NEVER commit. Store outside the repo.
+*.pem
+
+# Packed build artifacts
+*.crx
+*.zip
+
+# Dependencies / build output (for when there's a build step)
+node_modules/
+dist/
+build/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+*.log
