@@ -225,6 +225,8 @@ focusaurus/
 │     ├─ doug.js             # PURE: mood -> SVG string (ADR-9)
 │     ├─ doug.css            # Doug's sizing and motion
 │     ├─ match.js            # PURE: user input -> anchored pattern
+│     ├─ redirect.js         # PURE: the interstitial URL contract, both ways
+│     ├─ session.js          # PURE: session state + badge text
 │     ├─ copy.js             # rotating Doug lines, per mood and tier
 │     └─ starter-packs.js    # onboarding seed lists
 ├─ assets/
@@ -233,7 +235,7 @@ focusaurus/
 ├─ dev/
 │  └─ build-doug-sheet.js    # `npm run doug` -> character sheet
 ├─ docs/
-└─ test/                     # node --test, 30 tests, no dependencies
+└─ test/                     # node --test, 53 tests, no dependencies
 ```
 
 Everything above exists as of v0.1 except the two entries marked with a version.
