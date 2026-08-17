@@ -1,29 +1,44 @@
 {
-    "manifest_version": 3,
-    "name": "Focusaurus",
-    "description": "Increase productivity by blocking distracting websites until a specified time.",
-    "version": "1.0",
-    "permissions": [
-      "declarativeNetRequest", 
-      "storage",
-      "activeTab",
-      "webRequest"
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "16": "images/icon16.png",
-        "48": "images/icon48.png",
-        "128": "images/icon128.png"
-      }
-    },
-    "icons": {
-      "16": "images/icon16.png",
-      "48": "images/icon48.png",
-      "128": "images/icon128.png"
+  "manifest_version": 3,
+  "name": "Focusaurus",
+  "version": "0.1.0",
+  "description": "Block distracting sites during focus sessions. Doug the dinosaur notices when you try anyway.",
+
+  "permissions": [
+    "declarativeNetRequestWithHostAccess",
+    "storage",
+    "alarms"
+  ],
+
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
     }
-  }
-  
+  },
+
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["src/blocked/blocked.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

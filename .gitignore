@@ -10,6 +10,9 @@ node_modules/
 dist/
 build/
 
+# Generated dev tooling (regenerate with `npm run doug`)
+dev/doug-sheet.html
+
 # Editor / OS
 .vscode/
 .idea/

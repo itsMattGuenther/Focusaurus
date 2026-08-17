@@ -1,0 +1,14 @@
+{
+  "name": "focusaurus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that blocks distracting sites during focus sessions, with a dinosaur who notices.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "doug": "node dev/build-doug-sheet.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

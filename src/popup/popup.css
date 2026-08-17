@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Popup — the control panel
+   --------------------------------------------------------------------------
+   Secondary to the interstitial (ADR-3), so it stays quiet: no display-scale
+   type competing with the hero surface, no animation beyond Doug breathing.
+   Its job is a legible glance and three fast actions.
+   ========================================================================== */
+
+body {
+  width: 372px;
+  max-height: 580px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Grain is fixed-position, which misbehaves inside a scrolling popup. */
+body::after { display: none; }
+
+/* --- Masthead ------------------------------------------------------------ */
+
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+}
+
+.masthead__mark {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-opsz-low);
+  font-weight: 700;
+  font-size: var(--text-base);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Status chip flips to moss while a session runs — the one piece of color
+   that changes state in the header. */
+#statusChip {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-pill);
+}
+#statusChip[data-on='true'] {
+  color: var(--paper-raised);
+  background: var(--moss);
+  border-color: var(--moss);
+}
+
+/* --- Hero --------------------------------------------------------------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--rule);
+}
+
+.hero__portrait { position: relative; margin: 0; }
+
+.hero__vignette {
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 45%, var(--moss-wash) 0%, transparent 70%);
+}
+
+.hero__says {
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-opsz-mid);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.hero__because {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+}
+
+/* --- Panels ------------------------------------------------------------- */
+
+.panel {
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--rule);
+}
+.panel:last-of-type { border-bottom: 0; }
+
+.panel--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.panel .label { display: block; margin-bottom: var(--space-3); }
+.panel--row .label { margin-bottom: 0; }
+
+.label__count { color: var(--ink-faint); font-weight: 400; }
+
+.stat {
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-opsz-mid);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Chips -------------------------------------------------------------- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.chip {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-pill);
+  background: var(--paper-raised);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-soft);
+}
+.chip:hover { border-color: var(--moss); color: var(--ink); }
+.chip:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+
+.chip--on {
+  background: var(--moss-wash);
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
+.btn--block { width: 100%; }
+
+/* --- Countdown ---------------------------------------------------------- */
+
+.countdown {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-opsz-hero);
+  font-weight: 600;
+  font-size: var(--text-2xl);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--moss);
+}
+
+.countdown__note {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+}
+
+/* --- Add form ----------------------------------------------------------- */
+
+.add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+}
+
+.add__error {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--clay);
+  min-height: 0;
+}
+.add__error:empty { display: none; }
+
+/* --- Site list ---------------------------------------------------------- */
+
+.sites {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sites:empty { display: none; }
+
+.site {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dashed var(--rule);
+}
+.site:last-child { border-bottom: 0; }
+
+.site__name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Pack provenance, so a seeded entry is distinguishable from one you typed. */
+.site__pack {
+  font-size: var(--text-xs);
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.site__remove {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink-faint);
+  font-size: var(--text-md);
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-soft);
+}
+.site__remove:hover { background: var(--clay-wash); color: var(--clay); }
+.site__remove:focus-visible { outline: 2px solid var(--clay); outline-offset: 1px; }
+
+/* --- Packs -------------------------------------------------------------- */
+
+.packs { margin-top: var(--space-4); }
+
+.packs__intro {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}

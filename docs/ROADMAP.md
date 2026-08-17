@@ -8,64 +8,75 @@ Estimates assume evenings-and-weekends pace on a personal project.
 
 ---
 
-## Now → v0.1 · "Blocks"
+## ✅ v0.1 · "Blocks" — shipped
 
-**Goal:** the existing prototype, correct. No new features.
+**Goal was:** the existing prototype, correct.
 
-The prototype's blocking is mostly broken in ways that aren't visible in a demo
-(see [DESIGN.md §1](DESIGN.md#1-what-the-prototype-got-wrong)), and every later
-phase sits on top of it.
+- [x] Restructure to the `src/` layout in [DESIGN.md §3](DESIGN.md#3-file-layout)
+- [x] `rules.js` as a pure function: settings → DNR rules. Unique IDs, anchored
+      domain matching, `main_frame` only
+- [x] Reconcile rules wholesale on startup, install, and every settings change
+- [x] `block` → `redirect` at the interstitial (ADR-2, ADR-4)
+- [x] Fix the popup toggle race (§1 #5); dedupe on add (§1 #7)
+- [x] Drop the unused `webRequest` permission; add `alarms`
+- [x] Focus sessions with a **duration** — 25 / 50 / 90 / open-ended, plus a
+      countdown on the toolbar badge
+- [x] Starter packs as onboarding chips
+- [x] `test/` with node's built-in runner — 30 tests, named regression tests for
+      each prototype bug
+- [x] `.gitignore` the `.pem` and `.crx`
 
-- [ ] Restructure to the `src/` layout in [DESIGN.md §3](DESIGN.md#3-file-layout)
-- [ ] `rules.js` as a pure function: settings → DNR rules. Unique IDs, proper
-      domain anchoring, `main_frame` only
-- [ ] Reconcile rules wholesale on startup and on every settings change — never
-      patch individual IDs (§1 #8)
-- [ ] Switch `block` → `redirect` at a placeholder interstitial (ADR-2, ADR-4)
-- [ ] Fix the popup toggle race (§1 #5); dedupe on add (§1 #7)
-- [ ] Drop the unused `webRequest` permission; add `alarms`
-- [ ] Focus mode with a **duration** (25 / 50 / 90 min / until I stop) rather than
-      an indefinite toggle
-- [ ] Starter packs as onboarding chips — Social, Video, News, Shopping, Forums
-- [ ] `test/` with node's built-in runner against `rules.js`
-- [ ] `.gitignore` the `.pem` and `.crx` ([DESIGN.md → Housekeeping](DESIGN.md#housekeeping))
+**Landed early, ahead of plan.** Design being equal-weight made it wasteful to
+ship placeholder chrome and redo it later, so the following moved up from v0.2:
 
-**Exit:** add 10 sites across 3 packs, start a 25-minute session, and all 10
-redirect correctly. Nothing else on the web breaks. Rules survive a browser
-restart and reconcile correctly after editing the list with focus off.
+- [x] The full design token system — field-guide direction, light/dark, bundled
+      variable fonts ([DESIGN.md §8](DESIGN.md#8-design-system))
+- [x] Doug as inline SVG in all 7 moods, breathing and blinking (ADR-9) — which
+      also removed the art commission from the critical path entirely
+- [x] `mood.js`, complete, with the budget rules dormant until v0.4
+- [x] The interstitial as a real designed page, not a placeholder
+- [x] `copy.js` — rotating lines, tiered by attempt count (ADR-6)
+- [x] Attempt counting per site per day
+- [x] Override flow with the breathing-room delay and `strictness`
 
-**Rough size:** a weekend.
+**Also found and fixed along the way:** `redirect` requires `host_permissions`,
+unlike `block` — without it the rules match nothing and fail silently
+([ADR-10](DESIGN.md#adr-10-declarativenetrequestwithhostaccess--explicit-host-permissions)).
+
+**Exit criteria:** ⏳ not yet verified in a real browser — see the smoke test at
+the bottom of this file.
 
 ---
 
-## v0.2 · "Doug" — the character
+## v0.2 · "Doug, properly"
 
-**Goal:** the thing that makes this Focusaurus and not another blocker. This is
-the phase that either validates the whole thesis or doesn't.
+**Goal:** close the gap between "built" and "trustworthy," then find out whether
+the thesis holds.
 
-- [ ] `mood.js` — the 7 priority rules from
-      [DESIGN.md §5](DESIGN.md#5-the-mood-engine), pure and unit-tested
-- [ ] 6 dino sprites: `asleep`, `locked_in`/`focused`, `bummed`, `side_eye`,
-      `stoked`, `chill`
-- [ ] The interstitial as a real designed page — full-bleed Doug, the site you
-      tried to reach, today's attempt count for it
-- [ ] `copy.js` — rotating per-mood lines, no repeat-in-a-row (ADR-6)
-- [ ] Attempt counting per site per day
-- [ ] Override flow with the breathing-room delay, and `strictness` in settings
-- [ ] Popup rebuilt around the dino: mood, session control, today at a glance
-- [ ] Mood tooltip explaining *why* Doug feels this way
+Much of the original v0.2 shipped in v0.1, so what's left is smaller and mostly
+about finish:
 
-**Exit:** you can tell how your day is going from the popup icon alone, without
-reading any text. The interstitial makes you smile the first time and still
-registers on day five.
+- [ ] **Real icons drawn from Doug's geometry.** The 16/48/128 set is still
+      prototype placeholder art. The 16px toolbar icon is the single
+      most-frequently-seen artwork in the product
+- [ ] An options page: strictness, override length, schedule, dino name
+- [ ] Attempt history — "this week you reached for Reddit 40 times", reported
+      neutrally
+- [ ] Expand the copy pools; they're thin enough to notice repeats inside a week
+- [ ] Mood tooltip in the popup (the `because` string is already computed and
+      returned, it just isn't surfaced on hover yet)
+- [ ] Accessibility pass on both surfaces: keyboard nav, focus order, contrast
+      audit against both palettes
 
-**Rough size:** 2–3 weekends, art dependent. The art is the critical path — 6
-consistent expressive sprites is real work. Options: commission, generate,
-or draw badly on purpose and make that the style.
+> ### ⚠️ The checkpoint that matters
+>
+> Ship v0.2, then **use it for two weeks and answer honestly: is it still
+> enabled?** That's the thesis — a character makes people keep a blocker longer
+> than a UI does — and you're the test subject. If Doug isn't carrying his
+> weight, nothing later fixes it, and it's much better to learn that before
+> building time tracking and budgets on top.
 
-> **This is the checkpoint that matters.** Ship v0.2, use it for two weeks, and
-> answer honestly: is it still enabled? If the dino isn't carrying its weight,
-> nothing later fixes that — better to know before building budgets on top.
+**Rough size:** 1–2 weekends.
 
 ---
 
@@ -184,3 +195,52 @@ Worth revisiting once v1.0 is real and being used:
 - **Calendar integration** (auto-focus during meetings or blocked-off time) —
   genuinely useful, needs OAuth, so it lands after the local-only story is solid.
 - **Doug reacting to time of day** — small, charming, cheap. A nice v1.1.
+
+---
+
+## v0.1 smoke test
+
+The 30 unit tests cover rule compilation, matching, and mood resolution, but
+nothing about them proves Chrome accepts the rules or that the redirect fires.
+That needs a browser. Run this once after loading unpacked:
+
+**Setup**
+
+1. `chrome://extensions` → Developer mode → Load unpacked → this directory
+2. Confirm **no errors** under the extension card. A red "Errors" button here
+   usually means a bad `import` path in the service worker
+3. Click the toolbar icon — Doug should appear, mood `chill`, status `Idle`
+
+**Blocking**
+
+4. Click a starter pack (say Social). Sites appear in the list with a pack tag
+5. Start a 25-minute session. Badge shows `25`; status flips to `Focusing`
+6. Visit `instagram.com` → **full-page Doug**, side-eyeing, "first time today"
+7. Visit it again → count reads "2nd time today", and the line should differ
+8. Confirm the specimen tag shows the site and a live session countdown
+
+**The things most likely to be broken**
+
+9. **Path matching:** `youtube.com/shorts` blocks, `youtube.com` does not
+10. **Anchoring:** add `reddit.com`, then confirm a URL merely *containing* the
+    string — e.g. a Google search for "reddit.com" — is not blocked
+11. **Override:** wait out the 15s countdown, click through, confirm you land on
+    the site *and* on the original path rather than the bare domain (this is the
+    `#url=\0` fragment trick working)
+12. **Sub-resources survive:** with `youtube.com/shorts` blocked, an embedded
+    YouTube player elsewhere still loads. This is prototype bug #3 — if embeds
+    break, `resourceTypes` regressed
+13. **Reconciliation:** end the session, confirm blocked sites load again.
+    Restart Chrome mid-session and confirm blocking is still correct
+14. **Session expiry:** start a 1-minute session (temporarily edit a chip) and
+    confirm the alarm ends it and clears the badge without the popup open
+
+**Design**
+
+15. Toggle OS dark mode and re-open both surfaces — full palette swap, grain
+    still subtle, no unreadable text
+16. Enable "reduce motion" in the OS and confirm Doug stops breathing
+17. `npm run doug` → open `dev/doug-sheet.html` and check all 7 moods read as the
+    same character in both themes
+
+Anything that fails here is a v0.1 bug, not a v0.2 feature.
