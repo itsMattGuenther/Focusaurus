@@ -219,9 +219,13 @@ Worth revisiting once v1.0 is real and being used:
 
 ## v0.1 smoke test
 
-The 30 unit tests cover rule compilation, matching, and mood resolution, but
-nothing about them proves Chrome accepts the rules or that the redirect fires.
-That needs a browser. Run this once after loading unpacked:
+The 44 unit tests cover rule compilation, matching, mood resolution, and a
+simulation of Chrome's `regexSubstitution` step — so the URL round-trip in step
+11 is now covered in `test/redirect.test.js`, including URLs carrying their own
+`&` and `#`. What tests still cannot prove is that **Chrome accepts the rules**
+and that the **redirect actually fires**. That needs a browser.
+
+Run this once after loading unpacked:
 
 **Setup**
 

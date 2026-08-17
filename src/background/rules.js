@@ -14,6 +14,7 @@
    ========================================================================== */
 
 import { toRegexFilter } from '../shared/match.js';
+import { buildRedirectSubstitution } from '../shared/redirect.js';
 
 /* Id space. Kept in explicit bands so a rule's purpose is obvious from its id
    while debugging, and so the two kinds can never collide. */
@@ -30,25 +31,6 @@ export const PRIORITY_OVERRIDE = 100;
  *  to an HTML page produces garbage, and blocking them all is how the prototype
  *  broke embeds across the entire web. */
 const RESOURCE_TYPES = ['main_frame'];
-
-/**
- * Build the redirect target for a blocked site.
- *
- * The site id rides in the query string; the original URL rides in the
- * FRAGMENT, after `#url=`.
- *
- * That split is deliberate. `\0` expands to the entire matched URL, which
- * routinely contains `?`, `&`, and `#` — put it in the query string and
- * URLSearchParams truncates it at the first `&`. In the fragment we can read
- * everything after `#url=` as one opaque string, so even a URL with its own
- * fragment survives intact.
- *
- * @param {string} interstitialUrl absolute chrome-extension:// URL
- * @param {string} siteId
- */
-export function redirectTarget(interstitialUrl, siteId) {
-  return `${interstitialUrl}?site=${encodeURIComponent(siteId)}#url=\\0`;
-}
 
 /**
  * Compile the full dynamic rule set.
@@ -111,7 +93,9 @@ export function compileRules({
       priority: PRIORITY_BLOCK,
       action: {
         type: 'redirect',
-        redirect: { regexSubstitution: redirectTarget(interstitialUrl, site.id) },
+        redirect: {
+          regexSubstitution: buildRedirectSubstitution(interstitialUrl, site.id),
+        },
       },
       condition: { regexFilter, resourceTypes: RESOURCE_TYPES },
     });
