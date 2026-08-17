@@ -4,6 +4,7 @@
 
 import { renderDoug } from '../shared/doug.js';
 import { blockedCopy } from '../shared/copy.js';
+import { displayHost, parseInterstitial, safeExternalUrl } from '../shared/redirect.js';
 
 const els = {
   doug: document.getElementById('dougMount'),
@@ -21,30 +22,13 @@ const els = {
 
 /* --- Inputs -------------------------------------------------------------- */
 
-const siteId = new URLSearchParams(location.search).get('site');
+/* Site id from the query, original URL from the fragment — shared/redirect.js
+   owns both halves of that contract and explains the shape. */
+const { siteId, rawTarget } = parseInterstitial(location.search, location.hash);
 
-/* The original URL arrives in the FRAGMENT, not the query string (rules.js
-   explains why). Read it as one opaque slice so a URL carrying its own `#`
-   or `&` survives intact. */
-const rawTarget = location.hash.startsWith('#url=')
-  ? location.hash.slice('#url='.length)
-  : null;
-
-/**
- * The blocked URL is attacker-influenced — any site can navigate you to a
- * crafted URL, which then lands in our fragment. So it is never written with
- * innerHTML, and it is scheme-checked before it can reach location.
- */
-function safeExternalUrl(raw) {
-  if (!raw) return null;
-  try {
-    const url = new URL(raw);
-    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
-  } catch {
-    return null;
-  }
-}
-
+/* Scheme-gated: this value is attacker-influenced, since any site can navigate
+   you to a crafted URL that lands in our fragment. It is also only ever written
+   to the DOM with textContent, never innerHTML. */
 const target = safeExternalUrl(rawTarget);
 
 /* --- Helpers ------------------------------------------------------------- */
@@ -53,14 +37,6 @@ function ordinal(n) {
   const mod100 = n % 100;
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
   return `${n}${['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
-}
-
-function hostOf(raw) {
-  try {
-    return new URL(raw).host.replace(/^www\./, '');
-  } catch {
-    return null;
-  }
 }
 
 function send(action, payload = {}) {
@@ -151,7 +127,7 @@ async function main() {
     .toUpperCase()}`;
 
   // Site name: prefer what the block rule knows, fall back to the URL's host.
-  const fallbackHost = target ? hostOf(target) : null;
+  const fallbackHost = target ? displayHost(target) : null;
 
   let ctx = null;
   try {
