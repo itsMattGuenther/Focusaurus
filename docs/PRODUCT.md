@@ -105,11 +105,26 @@ But the alternative — an empty text input — is worse. That's the current pro
 and it has a cold-start problem: the user has to sit and *think* of their own
 weaknesses before getting any value.
 
-**Resolution:** ship a handful of small opinionated **starter packs** (Social,
-Video, News, Shopping, Forums) shown during onboarding as accept/reject chips.
-Pick your poison in 15 seconds, then it's yours to edit. The packs are a
-*seeding mechanism*, not a curated authority — and we should never auto-add to
-someone's list after onboarding.
+**Resolution:** ship opinionated **category packs** — Social, Video, Forums,
+News, Shopping, Games; 77 sites total — as toggle chips. Pick your poison in 15
+seconds, then it's yours to edit. The packs are a *seeding mechanism*, not a
+curated authority, and nothing is ever auto-added to someone's list.
+
+Two corrections learned from actually using this (v0.1 shipped both wrong):
+
+1. **Packs are a permanent control, not an onboarding step.** The first build
+   hid the pack chips as soon as any site existed, which meant clicking "Social"
+   locked you out of every other category. Wrong model: combining several
+   categories is the *normal* case, not an edge case. They're now always
+   visible, independently toggleable, and show whether each is off, partial, or
+   fully on.
+2. **Scope to a path when only part of a site is the trap.** A blanket
+   `linkedin.com` block forces you to disable the whole category the first time
+   you need a message, and *a rule you switch off protects nothing*. So
+   `linkedin.com/feed`, `youtube.com/shorts`, `youtube.com/feed/trending` and
+   `bbc.com/news` are path-scoped, and the bare domains are deliberately absent.
+   There's a test asserting the packs never blanket-block anything plausibly
+   needed for work.
 
 ### 4.2 Hard blocking is the weakest mechanic. Budgets are the actual product.
 

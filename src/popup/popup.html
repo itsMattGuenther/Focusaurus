@@ -58,6 +58,15 @@
     <span class="stat" id="attemptsToday">0</span>
   </section>
 
+  <!-- Packs. Permanently available and independently toggleable — you can run
+       any combination, and add or drop a whole category at once. -->
+  <section class="panel">
+    <h2 class="label">
+      Categories <span class="label__count" id="packHint"></span>
+    </h2>
+    <div class="chips chips--packs" id="packChips"></div>
+  </section>
+
   <!-- Blocklist -->
   <section class="panel">
     <h2 class="label">
@@ -71,13 +80,13 @@
     </form>
     <p class="add__error" id="addError"></p>
 
-    <ul class="sites" id="siteList"></ul>
-
-    <!-- Cold start: packs seed a list so nobody has to sit and inventory
-         their own weaknesses before getting any value. -->
-    <div class="packs" id="packs" hidden>
-      <p class="packs__intro">Nothing blocked yet. Pick your poison:</p>
-      <div class="chips" id="packChips"></div>
+    <p class="sites__empty" id="sitesEmpty">
+      Nothing blocked yet — pick a category above, or type a site.
+    </p>
+    <!-- Scrolls independently: with several packs on this list runs long, and
+         the popup's own controls must stay put. -->
+    <div class="sites__scroll">
+      <ul class="sites" id="siteList"></ul>
     </div>
   </section>
 

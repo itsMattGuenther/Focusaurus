@@ -28,9 +28,10 @@ import {
   recordAttempt,
   recordOverride,
   removeSite,
+  removeSitesByPack,
   usageKey,
 } from './storage.js';
-import { STARTER_PACKS, packById } from '../shared/starter-packs.js';
+import { STARTER_PACKS, packById, packStatus } from '../shared/starter-packs.js';
 
 const INTERSTITIAL_PATH = '/src/blocked/blocked.html';
 
@@ -228,7 +229,14 @@ async function getState() {
     because,
     attemptsToday,
     usage,
-    packs: STARTER_PACKS,
+    // Status is computed here, not in the popup, so the chips can never
+    // disagree with the list they're describing.
+    packs: STARTER_PACKS.map((p) => ({
+      id: p.id,
+      label: p.label,
+      blurb: p.blurb,
+      status: packStatus(p, settings.sites),
+    })),
     strictnessDelay: OVERRIDE_DELAYS[settings.strictness],
   };
 }
@@ -253,16 +261,39 @@ async function getBlockedContext(siteId) {
 
 /* --- Onboarding --------------------------------------------------------- */
 
-async function applyPack(packId) {
+/**
+ * Toggle a whole pack on or off.
+ *
+ * The decision lives here rather than in the popup because the worker holds
+ * the authoritative site list — a popup deciding from a stale render could
+ * remove a pack the user had just re-added.
+ *
+ * Fully applied  -> remove everything that came from it
+ * Otherwise      -> add whatever's missing (idempotent; addSite dedupes)
+ *
+ * The partial case resolving to "add the rest" is deliberate: after removing a
+ * few entries by hand, clicking the pack should complete it, not wipe it.
+ */
+async function togglePack(packId) {
   const pack = packById(packId);
   if (!pack) return { ok: false, reason: 'unknown-pack' };
+
+  const settings = await getSettings();
+  const { state } = packStatus(pack, settings.sites);
+
+  if (state === 'all') {
+    const removed = await removeSitesByPack(pack.id);
+    await reconcile();
+    return { ok: true, action: 'removed', removed };
+  }
+
   let added = 0;
   for (const entry of pack.sites) {
     const res = await addSite(entry, { pack: pack.id });
     if (res.ok) added += 1;
   }
   await reconcile();
-  return { ok: true, added };
+  return { ok: true, action: 'added', added };
 }
 
 /* --- Message routing ----------------------------------------------------
@@ -286,7 +317,7 @@ const HANDLERS = {
     await reconcile();
     return { ok: true };
   },
-  applyPack: ({ packId }) => applyPack(packId),
+  togglePack: ({ packId }) => togglePack(packId),
 
   recordAttempt: async ({ siteId, line }) => {
     const attempts = await recordAttempt(siteId);

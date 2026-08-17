@@ -31,7 +31,8 @@ const els = {
   siteInput: document.getElementById('siteInput'),
   addError: document.getElementById('addError'),
   siteList: document.getElementById('siteList'),
-  packs: document.getElementById('packs'),
+  sitesEmpty: document.getElementById('sitesEmpty'),
+  packHint: document.getElementById('packHint'),
   packChips: document.getElementById('packChips'),
 };
 
@@ -91,6 +92,7 @@ function renderSession(session) {
 
 function renderSites(sites) {
   els.siteCount.textContent = sites.length ? `· ${sites.length}` : '';
+  els.sitesEmpty.hidden = sites.length > 0;
   els.siteList.replaceChildren();
 
   for (const site of sites) {
@@ -124,22 +126,57 @@ function renderSites(sites) {
   }
 }
 
-function renderPacks(packs, hasSites) {
-  els.packs.hidden = hasSites;
-  if (hasSites) return;
+/**
+ * Pack chips: always present, independently toggleable, three visual states.
+ *
+ * The previous version hid this whole section as soon as any site existed, so
+ * the first click locked you out of every other category. Packs are not a
+ * one-shot onboarding step — combining several is the normal case.
+ */
+function renderPacks(packs) {
+  const onCount = packs.filter((p) => p.status.state === 'all').length;
+  els.packHint.textContent = onCount ? `· ${onCount} on` : '';
 
   els.packChips.replaceChildren();
+
   for (const pack of packs) {
+    const { state, present, total } = pack.status;
+
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'chip';
-    btn.textContent = pack.label;
-    btn.title = pack.blurb;
+    btn.className = 'chip chip--pack';
+    btn.dataset.state = state;
+    // aria-pressed, because these are toggles rather than navigation.
+    btn.setAttribute('aria-pressed', String(state === 'all'));
+
+    const label = document.createElement('span');
+    label.textContent = pack.label;
+    btn.append(label);
+
+    // Only annotate when there's something to say: a bare label reads as off,
+    // a tick reads as fully on, and a fraction reads as partly on.
+    const mark = document.createElement('span');
+    mark.className = 'chip__mark';
+    if (state === 'all') mark.textContent = '✓';
+    else if (state === 'partial') mark.textContent = `${present}/${total}`;
+    else mark.textContent = `${total}`;
+    btn.append(mark);
+
+    btn.title =
+      state === 'all'
+        ? `${pack.blurb} — click to remove all ${total}`
+        : state === 'partial'
+          ? `${pack.blurb} — ${present} of ${total} on, click to add the rest`
+          : `${pack.blurb} — click to block ${total} sites`;
+
     btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      await send('applyPack', { packId: pack.id });
-      refresh();
+      // Disable the whole group: a pack write is several storage round trips,
+      // and a second click mid-flight could act on a stale status.
+      for (const c of els.packChips.children) c.disabled = true;
+      await send('togglePack', { packId: pack.id });
+      await refresh();
     });
+
     els.packChips.append(btn);
   }
 }
@@ -152,8 +189,8 @@ function render(state) {
   renderSession(state.session);
   els.attemptsToday.textContent = String(state.attemptsToday || 0);
 
+  renderPacks(state.packs);
   renderSites(state.settings.sites);
-  renderPacks(state.packs, state.settings.sites.length > 0);
 }
 
 async function refresh() {

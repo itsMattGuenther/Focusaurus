@@ -120,6 +120,24 @@ export async function removeSite(siteId) {
   await patchSettings({ sites: settings.sites.filter((s) => s.id !== siteId) });
 }
 
+/**
+ * Remove every site that came from a given pack.
+ *
+ * Keys off the `pack` provenance field, so anything the user typed by hand
+ * survives even if it happens to match a pack entry. Packs are disjoint
+ * (see starter-packs.js), so there's no question of another pack still
+ * wanting one of these.
+ *
+ * @returns {number} how many were removed
+ */
+export async function removeSitesByPack(packId) {
+  const settings = await getSettings();
+  const keep = settings.sites.filter((s) => s.pack !== packId);
+  const removed = settings.sites.length - keep.length;
+  if (removed) await patchSettings({ sites: keep });
+  return removed;
+}
+
 export async function findSite(siteId) {
   const settings = await getSettings();
   return settings.sites.find((s) => s.id === siteId) || null;
