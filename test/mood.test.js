@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { isWithinSchedule, localDayKey, resolveMood } from '../src/background/mood.js';
+import { resolveMood } from '../src/background/mood.js';
 
 const SCHEDULE = { enabled: true, days: [1, 2, 3, 4, 5], start: '09:00', end: '17:00' };
 
@@ -96,23 +96,4 @@ test('every mood ships an explanation', () => {
     const { because } = resolveMood(state);
     assert.ok(because && because.length > 5, 'because should be a real sentence');
   }
-});
-
-test('isWithinSchedule handles an overnight window', () => {
-  const night = { enabled: true, days: [0, 1, 2, 3, 4, 5, 6], start: '22:00', end: '04:00' };
-  assert.equal(isWithinSchedule(night, at(2026, 8, 19, 23)), true);
-  assert.equal(isWithinSchedule(night, at(2026, 8, 19, 2)), true);
-  assert.equal(isWithinSchedule(night, at(2026, 8, 19, 12)), false);
-  // Boundaries: start inclusive, end exclusive.
-  assert.equal(isWithinSchedule(night, at(2026, 8, 19, 22, 0)), true);
-  assert.equal(isWithinSchedule(night, at(2026, 8, 19, 4, 0)), false);
-});
-
-test('localDayKey uses local midnight, not UTC', () => {
-  // A late-evening timestamp must file under today. Using toISOString() here
-  // would roll the key to tomorrow for anyone west of Greenwich, which would
-  // silently split a single evening's usage across two days.
-  assert.equal(localDayKey(at(2026, 8, 17, 23, 59)), '2026-08-17');
-  assert.equal(localDayKey(at(2026, 8, 17, 0, 1)), '2026-08-17');
-  assert.equal(localDayKey(at(2026, 1, 5, 12)), '2026-01-05');
 });

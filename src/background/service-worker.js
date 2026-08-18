@@ -13,6 +13,7 @@
 import { compileRules } from './rules.js';
 import { resolveMood } from './mood.js';
 import { badgeText, sessionActive } from '../shared/session.js';
+import { decideScheduleAction, windowEndsAt } from '../shared/schedule.js';
 import {
   DEFAULT_SETTINGS,
   OVERRIDE_DELAYS,
@@ -29,6 +30,8 @@ import {
   recordOverride,
   removeSite,
   removeSitesByPack,
+  exportSettings,
+  importSettings,
   usageKey,
 } from './storage.js';
 import { STARTER_PACKS, packById, packStatus } from '../shared/starter-packs.js';
@@ -39,6 +42,7 @@ const ALARM_SESSION_END = 'session-end';
 const ALARM_OVERRIDE = 'override-expiry';
 const ALARM_HOUSEKEEPING = 'housekeeping';
 const ALARM_BADGE = 'badge-tick';
+const ALARM_SCHEDULE = 'schedule-check';
 
 /* --- Enforcement --------------------------------------------------------- */
 
@@ -76,18 +80,29 @@ async function reconcile() {
     await patchLocal({ overrides });
   }
 
-  await Promise.all([syncAlarms(local.session, overrides), paintBadge(local.session, now)]);
+  await Promise.all([
+    syncAlarms(local.session, overrides, settings.schedule),
+    paintBadge(local.session, now),
+  ]);
   return { enforcing, ruleCount: desired.length };
 }
 
 /** Keep alarms in step with state. Re-created rather than adjusted, since
  *  chrome.alarms has no update primitive. */
-async function syncAlarms(session, overrides) {
+async function syncAlarms(session, overrides, schedule) {
   await Promise.all([
     chrome.alarms.clear(ALARM_SESSION_END),
     chrome.alarms.clear(ALARM_OVERRIDE),
     chrome.alarms.clear(ALARM_BADGE),
+    chrome.alarms.clear(ALARM_SCHEDULE),
   ]);
+
+  // Only poll for schedule transitions when a schedule actually exists. A
+  // one-shot alarm at the next boundary would be cheaper still, but this costs
+  // one storage read a minute and is far harder to get subtly wrong.
+  if (schedule && schedule.enabled) {
+    chrome.alarms.create(ALARM_SCHEDULE, { periodInMinutes: 1 });
+  }
 
   if (sessionActive(session)) {
     chrome.alarms.create(ALARM_SESSION_END, { when: session.endsAt });
@@ -125,7 +140,7 @@ async function paintBadge(session, now = Date.now()) {
 async function tickBadge() {
   const local = await getLocal();
   if (local.session && !sessionActive(local.session)) {
-    await endSession();
+    await endSession({ byUser: false });
     return;
   }
   await paintBadge(local.session);
@@ -133,22 +148,47 @@ async function tickBadge() {
 
 /* --- Sessions ------------------------------------------------------------ */
 
-async function startSession(minutes) {
+/**
+ * @param {number} minutes
+ * @param {'manual'|'schedule'} source  provenance. The schedule may only ever
+ *   stop sessions it started itself, so this field is load-bearing rather than
+ *   informational.
+ * @param {number} [endsAt] explicit end, used by the schedule so a session
+ *   finishes exactly when the work window closes.
+ */
+async function startSession(minutes, source = 'manual', endsAt = null) {
   const planned = Number(minutes);
+  const safeMinutes = Number.isFinite(planned) && planned > 0 ? planned : 25;
   const now = Date.now();
+
   const session = {
     startedAt: now,
-    plannedMinutes: Number.isFinite(planned) && planned > 0 ? planned : 25,
-    endsAt: now + (Number.isFinite(planned) && planned > 0 ? planned : 25) * 60000,
+    plannedMinutes: safeMinutes,
+    endsAt: endsAt ?? now + safeMinutes * 60000,
+    source,
   };
   // Recent-attempt history is per-session; carrying it over would leave Doug
   // stuck out of `locked_in` for ten minutes into a fresh session.
-  await patchLocal({ session, recentAttempts: [] });
+  // Starting a session by hand also clears any schedule suppression — the user
+  // has plainly opted back in.
+  await patchLocal({ session, recentAttempts: [], scheduleSuppressedUntil: null });
   return reconcile();
 }
 
-async function endSession() {
+/**
+ * @param {object} [opts]
+ * @param {boolean} [opts.byUser=true] Whether a person asked for this. Ending a
+ *   SCHEDULED session by hand mutes auto-start for the rest of the window;
+ *   without that, the next alarm tick would restart it within a minute.
+ */
+async function endSession({ byUser = true } = {}) {
   const local = await getLocal();
+
+  if (byUser && local.session?.source === 'schedule') {
+    const settings = await getSettings();
+    await patchLocal({ scheduleSuppressedUntil: windowEndsAt(settings.schedule, new Date()) });
+  }
+
   if (local.session) {
     const usage = await getUsage();
     usage.sessions = [
@@ -168,6 +208,38 @@ async function endSession() {
   // outlives the thing it was an exception to.
   await patchLocal({ session: null, overrides: [] });
   return reconcile();
+}
+
+/* --- Schedule automation -------------------------------------------------
+   Without this, the schedule setting would only tint Doug's mood, and a "work
+   hours" toggle in the options page that didn't actually block anything would
+   be worse than no toggle at all. The decision itself is a pure function in
+   shared/schedule.js; this only carries it out. */
+
+async function applySchedule() {
+  const [settings, local] = await Promise.all([getSettings(), getLocal()]);
+
+  const decision = decideScheduleAction({
+    now: new Date(),
+    schedule: settings.schedule,
+    session: local.session,
+    suppressedUntil: local.scheduleSuppressedUntil,
+  });
+
+  if (decision.action === 'start') {
+    const minutes = Math.max(1, Math.round((decision.endsAt - Date.now()) / 60000));
+    await startSession(minutes, 'schedule', decision.endsAt);
+    return decision;
+  }
+
+  if (decision.action === 'stop') {
+    // byUser: false — the window closing is not the user quitting, so it must
+    // not arm suppression and block tomorrow's session.
+    await endSession({ byUser: false });
+    return decision;
+  }
+
+  return decision;
 }
 
 /* --- Overrides ----------------------------------------------------------- */
@@ -304,8 +376,8 @@ const HANDLERS = {
   getState: () => getState(),
   getBlockedContext: ({ siteId }) => getBlockedContext(siteId),
 
-  startSession: ({ minutes }) => startSession(minutes),
-  endSession: () => endSession(),
+  startSession: ({ minutes }) => startSession(minutes, 'manual'),
+  endSession: () => endSession({ byUser: true }),
 
   addSite: async ({ input }) => {
     const res = await addSite(input);
@@ -329,7 +401,21 @@ const HANDLERS = {
   patchSettings: async (patch) => {
     await patchSettings(patch.values || {});
     await reconcile();
-    return { ok: true };
+    // Take effect now rather than on the next tick: toggling the schedule on
+    // during work hours should start blocking immediately, not up to a minute
+    // later, and toggling it off should release straight away.
+    await applySchedule();
+    return { ok: true, settings: await getSettings() };
+  },
+
+  exportSettings: async () => ({ ok: true, data: await exportSettings() }),
+  importSettings: async ({ json }) => {
+    const res = await importSettings(json);
+    if (res.ok) {
+      await reconcile();
+      await applySchedule();
+    }
+    return res;
   },
 };
 
@@ -353,15 +439,23 @@ chrome.runtime.onInstalled.addListener(async () => {
 
   chrome.alarms.create(ALARM_HOUSEKEEPING, { periodInMinutes: 60 });
   await reconcile();
+  await applySchedule();
 });
 
 // Rules persist across restarts but settings may have changed while the worker
 // was dead, so reconcile on every startup rather than trusting what's there.
-chrome.runtime.onStartup.addListener(reconcile);
+chrome.runtime.onStartup.addListener(async () => {
+  await reconcile();
+  // The browser may have been closed across a window boundary, so decide fresh
+  // rather than trusting whatever session state was left behind.
+  await applySchedule();
+});
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_SESSION_END) {
-    await endSession();
+    // byUser: false — a timer running out is not the user quitting. Marking it
+    // as such would arm schedule suppression and block the next window.
+    await endSession({ byUser: false });
     return;
   }
   if (alarm.name === ALARM_OVERRIDE) {
@@ -372,6 +466,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await tickBadge();
     return;
   }
+  if (alarm.name === ALARM_SCHEDULE) {
+    await applySchedule();
+    return;
+  }
   if (alarm.name === ALARM_HOUSEKEEPING) {
     await pruneUsage();
     await reconcile();
@@ -380,6 +478,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 // Settings edited from any surface (or synced from another machine) must take
 // effect immediately.
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'sync' && ('sites' in changes || 'strictness' in changes)) reconcile();
+chrome.storage.onChanged.addListener(async (changes, area) => {
+  if (area !== 'sync') return;
+  // Any of these changes what gets enforced or which alarms should exist. This
+  // also covers edits arriving from another machine via storage.sync.
+  if ('sites' in changes || 'strictness' in changes || 'schedule' in changes) {
+    await reconcile();
+  }
+  if ('schedule' in changes) await applySchedule();
 });

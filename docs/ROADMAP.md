@@ -82,7 +82,13 @@ about finish:
       prototype placeholder art. The 16px toolbar icon is the single
       most-frequently-seen artwork in the product. Blocked on the item above:
       drawing icons from proportions that are about to change is wasted work
-- [ ] An options page: strictness, override length, schedule, dino name
+- [x] An options page: strictness, override length, schedule, dino name,
+      settings export/import. Reachable from the popup's gear
+- [x] **Schedule automation, pulled forward from v1.0.** Exposing a work-hours
+      setting that only tinted Doug's mood would have been actively misleading,
+      so the toggle now actually starts and stops sessions. Manually ending a
+      scheduled session suppresses auto-start for the rest of the window
+      ([ADR-11](DESIGN.md#adr-11-the-schedule-may-only-ever-stop-sessions-it-started))
 - [ ] Attempt history — "this week you reached for Reddit 40 times", reported
       neutrally
 - [ ] Expand the copy pools; they're thin enough to notice repeats inside a week
@@ -170,10 +176,10 @@ implementation is wrong — go back to the recovery rules.
 ## v1.0 · "Polish" — shippable to strangers
 
 - [ ] Onboarding: install → configured → first session, under 60 seconds
-- [ ] Schedule automation (auto-on during work hours) — the highest-value
-      unglamorous feature, since it removes the decision entirely
-- [ ] Options page that doesn't look like a config form
-- [ ] Settings import/export as JSON
+- [x] ~~Schedule automation~~ — shipped early in v0.2
+- [ ] Options page polish pass (it exists; onboarding flow still to come)
+- [x] ~~Settings import/export as JSON~~ — shipped in v0.2, with a validating
+      importer that repairs what it can and reports what it dropped
 - [ ] Accessibility pass: keyboard nav, contrast, `prefers-reduced-motion`,
       alt text on every mood sprite
 - [ ] Chrome Web Store listing — screenshots, privacy disclosure, a real icon

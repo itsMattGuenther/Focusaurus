@@ -46,6 +46,11 @@ a glance at a cartoon lizard instead of reading a dashboard.
   it's off, partial, or fully on. Sites that are only *partly* a trap are
   path-scoped, so `linkedin.com/feed` is blocked while the rest of LinkedIn
   keeps working.
+- **Work hours** — focus mode turns itself on during a schedule you set, so
+  there's no daily decision to make. End a session by hand and it won't restart
+  until the next window, because a blocker that fights you gets uninstalled.
+- **A settings page** — strictness (how long Doug makes you wait), override
+  length, schedule, his name, plus settings export/import as JSON.
 - **Local only** — no accounts, no servers, no analytics, no network requests.
 
 ## 📊 Why this might actually be useful
@@ -115,7 +120,7 @@ lives in.
 | Phase | Name | What lands | |
 | --- | --- | --- | --- |
 | v0.1 | Blocks | Correct blocking, sessions, Doug, the interstitial | ✅ |
-| v0.2 | Doug | Full mood surfacing, weekly review of attempts | |
+| v0.2 | Doug | Settings page and schedule ✅ · pixel-art Doug and icons pending | ◐ |
 | v0.3 | Time | Per-domain active-time tracking with idle handling | |
 | v0.4 | Budgets | Per-site daily budgets, soft warnings, budget moods | |
 | v0.5 | Streaks | Day-over-day streaks, earned dino cosmetics | |
@@ -134,13 +139,14 @@ No build step and no dependencies — it's a plain unbundled MV3 extension.
 #   2. Enable "Developer mode"
 #   3. "Load unpacked" -> select this directory
 
-npm test      # 30 tests over the pure logic modules, no browser needed
+npm test      # 102 tests over the pure logic modules, no browser needed
 npm run doug  # regenerate dev/doug-sheet.html — every mood, both themes
 ```
 
-The three modules most likely to harbour a subtle bug — rule compilation,
-site matching, mood resolution — are pure functions with no `chrome.*` calls, so
-they run under node's built-in test runner with no mocking
+The modules most likely to harbour a subtle bug — rule compilation, site
+matching, mood resolution, schedule decisions, settings validation — are pure
+functions with no `chrome.*` calls, so they run under node's built-in test
+runner with no mocking
 ([ADR-8](docs/DESIGN.md#adr-8-pure-core-testable-without-chrome)).
 
 ```
@@ -149,7 +155,9 @@ src/
                 mood.js, storage.js
   blocked/      the interstitial — the hero surface
   popup/        session control, blocklist
-  shared/       tokens.css (design system), doug.js, match.js, copy.js
+  options/      settings, schedule, full site list, backup
+  shared/       tokens.css (design system), doug.js, match.js, copy.js,
+                schedule.js, session.js, redirect.js
 ```
 
 ## 📚 Docs

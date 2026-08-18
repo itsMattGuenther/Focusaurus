@@ -13,6 +13,7 @@ import { isOpenEnded } from '../shared/session.js';
 
 const els = {
   statusChip: document.getElementById('statusChip'),
+  settingsBtn: document.getElementById('settingsBtn'),
   doug: document.getElementById('dougMount'),
   moodLine: document.getElementById('moodLine'),
   moodBecause: document.getElementById('moodBecause'),
@@ -203,6 +204,11 @@ async function refresh() {
 }
 
 /* --- Wiring -------------------------------------------------------------- */
+
+els.settingsBtn.addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+  window.close(); // the options page takes over; leaving the popup up is noise
+});
 
 for (const chip of document.querySelectorAll('.chip[data-minutes]')) {
   chip.addEventListener('click', () => {
