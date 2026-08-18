@@ -530,11 +530,21 @@ them. Warm analog paper does the opposite work for free.
 
 Resolved, recorded so the reasoning isn't lost:
 
-1. **`Focusaurus.pem`** — a private signing key, present in the working tree.
-   Checked: it was **never committed** (`git ls-files` never tracked it), so no
-   history rewrite is needed and the key is not compromised. Now covered by
-   `.gitignore`. It still sits untracked on disk; keep it, because it's what
-   fixes the extension's ID across reloads, but it must stay out of git.
+1. **`Focusaurus.pem`** — a private signing key. It was **never committed**
+   (`git ls-files` never tracked it), so no history rewrite was needed and the
+   key is not compromised. **Moved out of the repo entirely** on 2026-08-18 to
+   `D:\Dev Projects\_keys\`, and still covered by `.gitignore`.
+
+   Two reasons it had to leave the extension directory: Chrome warns about a key
+   file whenever the directory is loaded unpacked, and — the part that actually
+   matters — a key left in place gets bundled into any zip or `.crx` built from
+   the folder, which is exactly how signing keys leak.
+
+   **Correction to an earlier note here:** the `.pem` does *not* fix the
+   extension's ID during development. For `Load unpacked`, Chrome derives the ID
+   from the **directory path**. The key only affects the ID of a packed `.crx`.
+   And if Focusaurus is ever published on the Web Store, Google generates and
+   holds the signing key, making this file irrelevant.
 2. **`Focusaurus.crx`** — 93KB packed build artifact, also never tracked. Now
    ignored.
 3. **Git refused to run in this directory** — the repo was created under a
