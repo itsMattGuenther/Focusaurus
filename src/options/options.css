@@ -112,6 +112,17 @@
 .field--tiny { max-width: 120px; }
 .field--search { margin-top: var(--space-4); }
 
+/* Time inputs size themselves.
+   `.field` sets width:100%, so any fixed cap clipped Chrome's rendering of
+   "09:00 AM" plus its picker icon. Intrinsic width also handles locale: a
+   24-hour locale has no AM/PM and needs noticeably less room, so hardcoding a
+   width would be wrong somewhere no matter which number we picked. */
+.field--time {
+  width: auto;
+  min-width: 148px;
+  flex: none;
+}
+
 /* --- Choice cards (strictness) ------------------------------------------ */
 
 .choices {
