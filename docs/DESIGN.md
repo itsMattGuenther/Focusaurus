@@ -197,6 +197,34 @@ prompt instead of two.
 on all websites," which is unavoidable for any redirect-based blocker. Mitigated
 by the privacy posture in §7 being real and stated plainly in the listing.
 
+### ADR-11: The schedule may only ever stop sessions it started
+
+**Decision:** every session carries `source: 'manual' | 'schedule'`. Automation
+starts a session when the work window opens and stops it when the window closes
+— but only if `source === 'schedule'`. A manual session is never touched.
+
+Additionally, ending a *scheduled* session by hand sets
+`scheduleSuppressedUntil` to the end of the current window, muting auto-start
+until the next one.
+
+**Why the suppression rule exists:** without it, quitting a session mid-window
+would see the schedule restart it on the next alarm tick, roughly a minute
+later. That is the single most infuriating way to ship this feature, and it
+directly contradicts the positioning — a tool that overrules you is a cop, and
+people uninstall cops (PRODUCT.md §2). The user must always be able to win an
+argument with the schedule.
+
+The corollary matters too: `endSession({ byUser: false })` is used for the
+window closing, the timer expiring, and the badge tick's expiry safety net.
+Marking those as user actions would arm suppression and silently kill the *next*
+day's session — a bug that would take weeks to notice.
+
+`decideScheduleAction()` in `shared/schedule.js` is a pure function returning
+`{action, endsAt, reason}`; the worker only carries out the verdict. Every
+branch is covered in `test/schedule.test.js`, including the case where a session
+predating this feature has no `source` field and must be treated as manual so an
+upgrade doesn't silently kill it.
+
 ---
 
 ## 3. File layout
@@ -219,7 +247,10 @@ focusaurus/
 │  │  ├─ popup.html
 │  │  ├─ popup.css
 │  │  └─ popup.js
-│  ├─ options/               # (v1.0) budgets, schedule, import/export
+│  ├─ options/               # settings, schedule, full site list, backup
+│  │  ├─ options.html
+│  │  ├─ options.css
+│  │  └─ options.js
 │  └─ shared/
 │     ├─ tokens.css          # THE design system — see §8
 │     ├─ doug.js             # PURE: mood -> SVG string (ADR-9)
@@ -227,6 +258,7 @@ focusaurus/
 │     ├─ match.js            # PURE: user input -> anchored pattern
 │     ├─ redirect.js         # PURE: the interstitial URL contract, both ways
 │     ├─ session.js          # PURE: session state + badge text
+│     ├─ schedule.js         # PURE: work hours + the automation decision
 │     ├─ copy.js             # rotating Doug lines, per mood and tier
 │     └─ starter-packs.js    # onboarding seed lists
 ├─ assets/
@@ -235,7 +267,7 @@ focusaurus/
 ├─ dev/
 │  └─ build-doug-sheet.js    # `npm run doug` -> character sheet
 ├─ docs/
-└─ test/                     # node --test, 53 tests, no dependencies
+└─ test/                     # node --test, 102 tests, no dependencies
 ```
 
 Everything above exists as of v0.1 except the two entries marked with a version.
@@ -296,8 +328,11 @@ but allow `/r/programming`."
   "session": {                          // null when no session running
     "startedAt": 1755400000000,
     "plannedMinutes": 50,
-    "endsAt": 1755403000000
+    "endsAt": 1755403000000,
+    "source": "manual"                  // manual | schedule -- load-bearing:
+                                        // the schedule may only stop its own
   },
+  "scheduleSuppressedUntil": null,      // auto-start muted until this ts
   "tracker": {                          // ADR-5 checkpoint state
     "activeDomain": "youtube.com",
     "activeSince": 1755400000000,

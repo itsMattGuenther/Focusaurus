@@ -12,7 +12,7 @@
    ========================================================================== */
 
 import { parseInput, specKey } from '../shared/match.js';
-import { localDayKey } from './mood.js';
+import { localDayKey } from '../shared/schedule.js';
 
 export const SCHEMA_VERSION = 1;
 
@@ -40,7 +40,8 @@ export const DEFAULT_SETTINGS = {
 export const OVERRIDE_DELAYS = { gentle: 5, firm: 15, locked: null };
 
 const DEFAULT_LOCAL = {
-  session: null,        // { startedAt, endsAt, plannedMinutes }
+  session: null,        // { startedAt, endsAt, plannedMinutes, source }
+  scheduleSuppressedUntil: null, // auto-start muted until this ts
   overrides: [],        // [{ siteId, expiresAt }]
   recentAttempts: [],   // timestamps, pruned to a 10-minute window
   streak: { current: 0, best: 0, lastGoodDay: null },
@@ -202,4 +203,171 @@ export async function pruneUsage(keepDays = 90) {
   const stale = Object.keys(all).filter((k) => k.startsWith('usage:') && k < cutoffKey);
   if (stale.length) await chrome.storage.local.remove(stale);
   return stale.length;
+}
+
+/* ==========================================================================
+   Settings validation, export and import
+   ========================================================================== */
+
+const CLOCK_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+const MAX_SITES = 300;
+const MAX_DINO_NAME = 24;
+
+/**
+ * Coerce arbitrary parsed JSON into a settings object that cannot break the
+ * extension.
+ *
+ * PURE, and deliberately repair-not-reject: a single bad field in an imported
+ * file shouldn't lose the other forty. Anything unsalvageable falls back to its
+ * default and is reported in `warnings` so the UI can say what happened rather
+ * than silently discarding the user's data.
+ *
+ * @returns {{settings: object, warnings: string[]}}
+ */
+export function sanitizeSettings(raw) {
+  const warnings = [];
+  const src = raw && typeof raw === 'object' ? raw : {};
+  if (!raw || typeof raw !== 'object') warnings.push('No settings object found.');
+
+  /* strictness */
+  let strictness = src.strictness;
+  if (!Object.prototype.hasOwnProperty.call(OVERRIDE_DELAYS, strictness)) {
+    if (strictness !== undefined) warnings.push(`Unknown strictness "${strictness}".`);
+    strictness = DEFAULT_SETTINGS.strictness;
+  }
+
+  /* overrideMinutes */
+  let overrideMinutes = Number(src.overrideMinutes);
+  if (!Number.isFinite(overrideMinutes) || overrideMinutes < 1 || overrideMinutes > 120) {
+    if (src.overrideMinutes !== undefined) warnings.push('Override length out of range (1-120).');
+    overrideMinutes = DEFAULT_SETTINGS.overrideMinutes;
+  }
+  overrideMinutes = Math.round(overrideMinutes);
+
+  /* schedule */
+  const rawSchedule = src.schedule && typeof src.schedule === 'object' ? src.schedule : {};
+  let days = Array.isArray(rawSchedule.days)
+    ? [...new Set(rawSchedule.days.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))]
+    : null;
+  if (days === null) {
+    if (rawSchedule.days !== undefined) warnings.push('Schedule days were unreadable.');
+    days = [...DEFAULT_SETTINGS.schedule.days];
+  }
+  days.sort((a, b) => a - b);
+
+  const clock = (value, fallback, label) => {
+    if (typeof value === 'string' && CLOCK_RE.test(value)) return value;
+    if (value !== undefined) warnings.push(`Schedule ${label} must be HH:MM.`);
+    return fallback;
+  };
+
+  const schedule = {
+    enabled: Boolean(rawSchedule.enabled),
+    days,
+    start: clock(rawSchedule.start, DEFAULT_SETTINGS.schedule.start, 'start'),
+    end: clock(rawSchedule.end, DEFAULT_SETTINGS.schedule.end, 'end'),
+  };
+
+  /* dino name */
+  const rawName = src.dino && typeof src.dino === 'object' ? src.dino.name : undefined;
+  let name = typeof rawName === 'string' ? rawName.trim().slice(0, MAX_DINO_NAME) : '';
+  if (!name) {
+    if (rawName !== undefined) warnings.push('Dino name was empty; kept Doug.');
+    name = DEFAULT_SETTINGS.dino.name;
+  }
+
+  /* sites */
+  const sites = [];
+  const seen = new Set();
+  let dropped = 0;
+  const rawSites = Array.isArray(src.sites) ? src.sites : [];
+  if (!Array.isArray(src.sites) && src.sites !== undefined) warnings.push('Site list was not a list.');
+
+  for (const entry of rawSites) {
+    if (sites.length >= MAX_SITES) { dropped += 1; continue; }
+    if (!entry || typeof entry !== 'object') { dropped += 1; continue; }
+
+    // Re-derive the pattern rather than trusting a stored `match` object: an
+    // imported file could otherwise smuggle in a hand-edited pattern that never
+    // went through parseInput's validation.
+    //
+    // `label` is preferred over `match.value` deliberately. The two are always
+    // identical in data we wrote ourselves, but in a tampered file the label is
+    // the half a human would have looked at, so it's the more defensible
+    // source of truth.
+    const spec = parseInput(entry.label ?? entry.match?.value ?? '');
+    if (!spec) { dropped += 1; continue; }
+
+    const key = specKey(spec);
+    if (seen.has(key)) { dropped += 1; continue; }
+    seen.add(key);
+
+    sites.push({
+      id: typeof entry.id === 'string' && entry.id ? entry.id : newSiteId(),
+      label: spec.value,
+      match: spec,
+      mode: entry.mode === 'budget' ? 'budget' : 'block',
+      budgetMinutes: Number.isFinite(Number(entry.budgetMinutes))
+        ? Math.max(1, Math.round(Number(entry.budgetMinutes)))
+        : null,
+      pack: typeof entry.pack === 'string' ? entry.pack : 'custom',
+    });
+  }
+  if (dropped) warnings.push(`${dropped} site${dropped === 1 ? '' : 's'} skipped as invalid or duplicate.`);
+
+  return {
+    settings: {
+      schemaVersion: SCHEMA_VERSION,
+      dino: { name },
+      schedule,
+      strictness,
+      overrideMinutes,
+      onboarded: Boolean(src.onboarded),
+      sites,
+    },
+    warnings,
+  };
+}
+
+export const EXPORT_FORMAT = 'focusaurus-settings';
+
+/** Pretty-printed JSON, so the file is readable and diffable by hand. */
+export async function exportSettings() {
+  const settings = await getSettings();
+  return JSON.stringify(
+    {
+      format: EXPORT_FORMAT,
+      version: SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      settings,
+    },
+    null,
+    2,
+  );
+}
+
+/**
+ * Replace settings from an exported file.
+ * Usage history is untouched — this is a config restore, not a state restore.
+ */
+export async function importSettings(json) {
+  let parsed;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { ok: false, reason: 'not-json' };
+  }
+  if (!parsed || typeof parsed !== 'object') return { ok: false, reason: 'not-json' };
+  if (parsed.format && parsed.format !== EXPORT_FORMAT) {
+    return { ok: false, reason: 'wrong-format' };
+  }
+
+  // Accept either the wrapped export or a bare settings object, since people
+  // will inevitably paste the inner half.
+  const { settings, warnings } = sanitizeSettings(parsed.settings ?? parsed);
+
+  // Overwrite rather than clear-then-write: a failure between the two would
+  // leave the extension with no settings at all.
+  await chrome.storage.sync.set(settings);
+  return { ok: true, warnings, siteCount: settings.sites.length };
 }

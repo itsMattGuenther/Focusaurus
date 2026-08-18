@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Focusaurus — Settings</title>
+  <link rel="stylesheet" href="../shared/tokens.css">
+  <link rel="stylesheet" href="../shared/doug.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <figure class="masthead__portrait">
+        <div id="dougMount"></div>
+      </figure>
+      <div>
+        <h1 class="masthead__title">Focusaurus</h1>
+        <p class="masthead__sub" id="mastheadSub">Settings</p>
+      </div>
+      <p class="masthead__saved" id="savedFlag" role="status" aria-live="polite"></p>
+    </header>
+
+    <!-- ── Doug ─────────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card__title">Your dinosaur</h2>
+      <p class="card__hint">He answers to whatever you call him.</p>
+
+      <div class="row">
+        <label class="row__label" for="dinoName">Name</label>
+        <input type="text" id="dinoName" class="field field--short" maxlength="24"
+               autocomplete="off" spellcheck="false">
+      </div>
+    </section>
+
+    <!-- ── Blocking ─────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card__title">When you hit a blocked site</h2>
+      <p class="card__hint">
+        Doug waits before letting you through. The pause is the point — it
+        interrupts the reflex, which is the thing you're actually up against.
+      </p>
+
+      <fieldset class="choices" id="strictness">
+        <legend class="visually-hidden">Strictness</legend>
+
+        <label class="choice">
+          <input type="radio" name="strictness" value="gentle">
+          <span class="choice__body">
+            <span class="choice__name">Gentle</span>
+            <span class="choice__desc">5 second pause, then you're through</span>
+          </span>
+        </label>
+
+        <label class="choice">
+          <input type="radio" name="strictness" value="firm">
+          <span class="choice__body">
+            <span class="choice__name">Firm</span>
+            <span class="choice__desc">15 second pause. Long enough to change your mind</span>
+          </span>
+        </label>
+
+        <label class="choice">
+          <input type="radio" name="strictness" value="locked">
+          <span class="choice__body">
+            <span class="choice__name">Locked</span>
+            <span class="choice__desc">No way through until the session ends</span>
+          </span>
+        </label>
+      </fieldset>
+
+      <div class="row" id="overrideRow">
+        <label class="row__label" for="overrideMinutes">Override lasts</label>
+        <input type="number" id="overrideMinutes" class="field field--tiny" min="1" max="120" step="1">
+        <span class="row__suffix">minutes</span>
+      </div>
+    </section>
+
+    <!-- ── Schedule ─────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card__title">Work hours</h2>
+      <p class="card__hint">
+        Focus mode turns itself on during these hours, so there's no decision to
+        make. End a session by hand and Doug won't restart it until the next day.
+      </p>
+
+      <label class="toggle">
+        <input type="checkbox" id="scheduleEnabled">
+        <span class="toggle__track"><span class="toggle__thumb"></span></span>
+        <span class="toggle__label">Run focus mode on a schedule</span>
+      </label>
+
+      <div class="schedule" id="scheduleBody">
+        <div class="row">
+          <span class="row__label">Days</span>
+          <div class="days" id="days" role="group" aria-label="Days of the week"></div>
+        </div>
+
+        <div class="row">
+          <label class="row__label" for="scheduleStart">From</label>
+          <input type="time" id="scheduleStart" class="field field--tiny">
+          <label class="row__label row__label--mid" for="scheduleEnd">until</label>
+          <input type="time" id="scheduleEnd" class="field field--tiny">
+        </div>
+
+        <p class="schedule__summary" id="scheduleSummary"></p>
+      </div>
+    </section>
+
+    <!-- ── Sites ────────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card__title">
+        Blocked sites <span class="card__count" id="siteCount"></span>
+      </h2>
+
+      <div class="chips" id="packChips"></div>
+
+      <form class="add" id="addForm">
+        <input type="text" class="field" id="siteInput" placeholder="instagram.com  ·  or youtube.com/shorts"
+               autocomplete="off" spellcheck="false" aria-label="Site to block">
+        <button type="submit" class="btn btn--quiet">Add</button>
+      </form>
+      <p class="add__error" id="addError"></p>
+
+      <input type="search" class="field field--search" id="siteFilter"
+             placeholder="Filter…" aria-label="Filter blocked sites">
+
+      <ul class="sites" id="siteList"></ul>
+      <p class="sites__empty" id="sitesEmpty">Nothing blocked yet.</p>
+    </section>
+
+    <!-- ── Data ─────────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card__title">Your data</h2>
+      <p class="card__hint">
+        Everything lives on this machine. No account, no server, nothing leaves
+        the browser. Settings sync between your own Chrome profiles; usage
+        history stays local.
+      </p>
+
+      <div class="actions">
+        <button type="button" class="btn btn--quiet" id="exportBtn">Export settings</button>
+        <button type="button" class="btn btn--quiet" id="importBtn">Import settings…</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+      <p class="data__note" id="dataNote"></p>
+    </section>
+
+    <footer class="colophon">
+      <span>Focusaurus v0.1</span>
+      <span id="versionNote"></span>
+    </footer>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

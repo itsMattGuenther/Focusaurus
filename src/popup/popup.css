@@ -38,6 +38,28 @@ body::after { display: none; }
   letter-spacing: var(--tracking-tight);
 }
 
+.masthead__right { display: flex; align-items: center; gap: var(--space-2); }
+
+/* Settings gear. Quiet by default — it should be findable, not a focal point. */
+.iconbtn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink-faint);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-soft),
+              background-color var(--dur-fast) var(--ease-soft);
+}
+.iconbtn:hover { color: var(--ink); background: var(--paper-sunk); }
+.iconbtn:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+
 /* Status chip flips to moss while a session runs — the one piece of color
    that changes state in the header. */
 #statusChip {
