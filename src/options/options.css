@@ -355,6 +355,118 @@
 
 .sites__empty { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--ink-faint); }
 
+/* --- This week -----------------------------------------------------------
+   Observation, not a grade. Bars stay moss even on a loud day — clay is
+   for blocked/over, and using it here would turn a count into a scold. */
+
+.history__total {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+  font-family: var(--font-display);
+  font-variation-settings: var(--display-opsz-mid);
+  font-weight: 700;
+  font-size: var(--text-2xl);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.history__unit {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.history__headline {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  max-width: 52ch;
+}
+
+.history__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  align-items: end;
+}
+
+.history__day {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.history__bar {
+  width: 100%;
+  max-width: 32px;
+  height: 56px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--paper-sunk);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.history__fill {
+  width: 100%;
+  background: var(--moss);
+  border-radius: inherit;
+}
+
+.history__dow {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.history__day[data-today='true'] .history__dow { color: var(--moss); }
+
+.history__sites {
+  list-style: none;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+}
+
+.history__site {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px dashed var(--rule);
+}
+.history__site:last-child { border-bottom: 0; }
+
+.history__site-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.history__site-n {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: var(--text-sm);
+}
+
+.history__empty {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+}
+
 /* --- Data ---------------------------------------------------------------- */
 
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }

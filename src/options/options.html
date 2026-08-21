@@ -33,6 +33,25 @@
       </div>
     </section>
 
+    <!-- ── This week ────────────────────────────────────────────────────── -->
+    <section class="card" aria-labelledby="historyTitle">
+      <h2 class="card__title" id="historyTitle">This week</h2>
+      <p class="card__hint">
+        The last seven days of the reflex, counted. Time spent comes later —
+        attempts are the number that actually names the habit.
+      </p>
+
+      <p class="history__total">
+        <span id="historyTotal">0</span>
+        <span class="history__unit">this week</span>
+      </p>
+      <p class="history__headline" id="historyHeadline"></p>
+
+      <ol class="history__days" id="historyDays"></ol>
+      <ul class="history__sites" id="historySites"></ul>
+      <p class="history__empty" id="historyEmpty" hidden>Nothing to count yet — start a session.</p>
+    </section>
+
     <!-- ── Blocking ─────────────────────────────────────────────────────── -->
     <section class="card">
       <h2 class="card__title">When you hit a blocked site</h2>
