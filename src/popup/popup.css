@@ -128,6 +128,13 @@ body::after { display: none; }
 .panel .label { display: block; margin-bottom: var(--space-3); }
 .panel--row .label { margin-bottom: 0; }
 
+.panel__note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--ink-faint);
+}
+.panel__note:empty { display: none; }
+
 .label__count { color: var(--ink-faint); font-weight: 400; }
 
 .stat {

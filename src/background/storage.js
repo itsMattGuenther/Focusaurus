@@ -192,6 +192,25 @@ export async function countRecentAttempts() {
   return local.recentAttempts.filter((t) => t > cutoff).length;
 }
 
+/**
+ * Batch-read usage buckets for a list of local day keys.
+ * Missing days come back as empty buckets so callers can treat the week as
+ * a dense range rather than a sparse map.
+ *
+ * @param {string[]} dayKeys YYYY-MM-DD
+ */
+export async function getUsageDays(dayKeys) {
+  const keys = Array.isArray(dayKeys) ? dayKeys : [];
+  if (!keys.length) return {};
+  const stored = await chrome.storage.local.get(keys.map((k) => `usage:${k}`));
+  /** @type {Record<string, { perSite: Record<string, object>, sessions: object[] }>} */
+  const out = {};
+  for (const k of keys) {
+    out[k] = stored[`usage:${k}`] || { perSite: {}, sessions: [] };
+  }
+  return out;
+}
+
 /** Drop usage buckets older than `keepDays`. Bounded storage, and 90 days is
  *  more history than anyone reviews. */
 export async function pruneUsage(keepDays = 90) {

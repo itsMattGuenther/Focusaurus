@@ -260,14 +260,15 @@ focusaurus/
 │     ├─ session.js          # PURE: session state + badge text
 │     ├─ schedule.js         # PURE: work hours + the automation decision
 │     ├─ copy.js             # rotating Doug lines, per mood and tier
+│     ├─ history.js          # PURE: usage buckets -> trailing-week attempts
 │     └─ starter-packs.js    # onboarding seed lists
 ├─ assets/
 │  ├─ fonts/                 # Fraunces + Public Sans, latin subset, OFL
-│  └─ icons/                 # 16/48/128 — still prototype placeholders
+│  └─ icons/                 # 16/48/128, rasterized from Doug (`npm run icons`)
 ├─ dev/
 │  └─ build-doug-sheet.js    # `npm run doug` -> character sheet
 ├─ docs/
-└─ test/                     # node --test, 102 tests, no dependencies
+└─ test/                     # node --test, no dependencies
 ```
 
 Everything above exists as of v0.1 except the two entries marked with a version.
@@ -353,6 +354,13 @@ but allow `/r/programming`."
 
 **Retention:** `usage:*` keys are pruned to a rolling 90 days by a daily alarm.
 Bounded storage, and 90 days is more history than anyone reviews.
+
+**The week view (v0.2):** `shared/history.js` folds the last seven local days
+into a ranked attempt list. The popup shows today's total plus the week's
+leader; the settings page shows the ranked list and a seven-day strip. Time
+spent (`activeSeconds`) is stored but unread until v0.3; overrides are stored
+but unread until the weekly review. The fold is pure, so the two surfaces
+cannot disagree.
 
 **Day boundary:** local midnight, from the user's own clock. Not UTC — a day that
 rolls over at 7pm would make budgets nonsense. Store day keys as local
@@ -560,6 +568,7 @@ Resolved, recorded so the reasoning isn't lost:
 
 Still outstanding:
 
-- **The icons in `assets/icons/` are prototype placeholders.** They need to be
-  redrawn from Doug's actual geometry before any Web Store listing — the toolbar
-  icon at 16px is the most-seen artwork in the entire product.
+- **The icons in `assets/icons/` are drawn from Doug's geometry** via
+  `npm run icons`. The 16px toolbar icon is a head-and-shoulders crop of the
+  same SVG (`ICON_VIEWBOX` in `doug.js`); 48 and 128 keep the whole figure.
+  Regenerating after a redraw is the whole point of keeping him as paths.
