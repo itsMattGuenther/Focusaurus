@@ -26,9 +26,10 @@
 
 /* Blink. Scoped to the EYES group, never the whole face — animating the face
    squashes his brows and mouth too, so his entire head appears to deflate.
-   Long pause, fast blink; the timing is what sells it as alive. */
+   Long pause, fast blink; the timing is what sells it as alive.
+   Origin is the midpoint of the v0.2 eyes (138,50) / (156,52). */
 .doug--breathing .doug__eyes {
-  transform-origin: 152px 58px;
+  transform-origin: 147px 51px;
   animation: doug-blink 7.3s steps(1, end) infinite;
 }
 
