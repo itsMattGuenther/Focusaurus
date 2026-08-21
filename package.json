@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
-    "doug": "node dev/build-doug-sheet.js"
+    "doug": "node dev/build-doug-sheet.js",
+    "icons": "node dev/build-icons.mjs"
   },
   "engines": {
     "node": ">=20"
