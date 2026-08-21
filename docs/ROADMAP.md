@@ -60,28 +60,19 @@ the thesis holds.
 Much of the original v0.2 shipped in v0.1, so what's left is smaller and mostly
 about finish:
 
-- [ ] **Doug's proportions.** His v0.1 geometry was authored blind — no
-      rasterizer was available, so the paths were never seen before shipping.
-      He reads as recognizably a dinosaur but distinctly derpy. Deferring this
-      is cheap and safe: his appearance is confined to `doug.js` (geometry) and
-      `doug.css` (motion), and nothing else in the codebase knows what he looks
-      like. Consumers only ever call `renderDoug(el, mood)`. The contract is the
-      seven mood ids — hold those and he can be redrawn from scratch, or
-      replaced with commissioned art, without touching a single other file.
-      Prime suspects, in order:
-      - head/body ratio — the head ellipse (`rx 32`) may be too large against
-        the body (`rx 48`), and the `stroke-width: 34` neck reads thick
-      - eyes sit high and wide on the head; the snout ellipse likely makes a
-        lumpy silhouette where it overlaps the head rather than a clean muzzle
-      - brows may float detached above the eyes
-      - back plates may poke through at odd angles along the spine
-      - tune him against real sizes (340px interstitial, 92px popup, 16px
-        badge), not just the character sheet — the risk of perfecting him in
-        isolation is that he looks right there and wrong in situ
-- [ ] **Real icons drawn from Doug's geometry.** The 16/48/128 set is still
-      prototype placeholder art. The 16px toolbar icon is the single
-      most-frequently-seen artwork in the product. Blocked on the item above:
-      drawing icons from proportions that are about to change is wasted work
+- [x] **Doug's proportions.** Redrawn against the specimen plate in
+      `Focusaurus.webp` and against the sizes he actually lives at (340px
+      interstitial, 92px popup, 16px badge). Head dropped from `rx 32` to
+      `rx 22` (~45% of body width instead of ~67%). Neck stroke 34 → 20 so it
+      reads as a neck, not a third limb. Snout is a horizontal muzzle instead
+      of a second egg. Brows sit on the face. Plates follow the spine and tuck
+      under the body. Stubby T-rex arms added — that's the silhouette cue at
+      popup size. Contract unchanged: `renderDoug(el, mood)`, seven mood ids,
+      geometry confined to `doug.js` / `doug.css`.
+- [x] **Real icons drawn from Doug's geometry.** `dev/build-icons.mjs`
+      rasterizes the same SVG. 16px uses the head-and-shoulders crop
+      (`ICON_VIEWBOX`) so he remains a dinosaur at toolbar size; 48 and 128
+      keep the whole figure.
 - [x] An options page: strictness, override length, schedule, dino name,
       settings export/import. Reachable from the popup's gear
 - [x] **Schedule automation, pulled forward from v1.0.** Exposing a work-hours
@@ -89,11 +80,18 @@ about finish:
       so the toggle now actually starts and stops sessions. Manually ending a
       scheduled session suppresses auto-start for the rest of the window
       ([ADR-11](DESIGN.md#adr-11-the-schedule-may-only-ever-stop-sessions-it-started))
-- [ ] Attempt history — "this week you reached for Reddit 40 times", reported
-      neutrally
-- [ ] Expand the copy pools; they're thin enough to notice repeats inside a week
-- [ ] Mood tooltip in the popup (the `because` string is already computed and
-      returned, it just isn't surfaced on hover yet)
+- [x] Attempt history — "this week you reached for Reddit 40 times", reported
+      neutrally. Trailing seven local days, folded from the existing `usage:*`
+      buckets by `shared/history.js`. Popup names today's count and the week's
+      leader; the settings page has the ranked list and a seven-day strip.
+      Time spent is still v0.3; overrides stay in the data and wait for the
+      weekly review.
+- [x] Expand the copy pools — doubled every interstitial tier and the per-mood
+      greetings. Covered by `test/copy.test.js` so they can't silently shrink.
+- [x] Mood caption in the popup. The `because` string is always visible under
+      Doug's line (`#moodBecause`) rather than a hover tooltip — the popup is
+      the glance surface, and hover would hide the explanation on every
+      touchscreen. Landed with the settings page.
 - [ ] Accessibility pass on both surfaces: keyboard nav, focus order, contrast
       audit against both palettes
 

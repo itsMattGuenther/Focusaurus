@@ -23,6 +23,7 @@ import {
   getLocal,
   getSettings,
   getUsage,
+  getUsageDays,
   patchLocal,
   patchSettings,
   pruneUsage,
@@ -35,6 +36,7 @@ import {
   usageKey,
 } from './storage.js';
 import { STARTER_PACKS, packById, packStatus } from '../shared/starter-packs.js';
+import { summarizeAttempts, weekKeys } from '../shared/history.js';
 
 const INTERSTITIAL_PATH = '/src/blocked/blocked.html';
 
@@ -268,14 +270,15 @@ async function requestOverride(siteId) {
 /* --- Aggregate state for the UI ----------------------------------------- */
 
 async function getState() {
-  const [settings, local, usage, recentAttempts] = await Promise.all([
+  const now = new Date();
+  const keys = weekKeys(now);
+  const [settings, local, recentAttempts, weekUsage] = await Promise.all([
     getSettings(),
     getLocal(),
-    getUsage(),
     countRecentAttempts(),
+    getUsageDays(keys),
   ]);
 
-  const now = new Date();
   const active = sessionActive(local.session, now.getTime());
 
   // Repaint while we're here. The popup runs its own live countdown, so without
@@ -291,7 +294,8 @@ async function getState() {
     streak: local.streak?.current || 0,
   });
 
-  const attemptsToday = Object.values(usage.perSite).reduce((n, e) => n + (e.attempts || 0), 0);
+  const history = summarizeAttempts(weekUsage, settings.sites);
+  const attemptsToday = history.days[history.days.length - 1]?.attempts || 0;
 
   return {
     settings,
@@ -300,7 +304,7 @@ async function getState() {
     mood,
     because,
     attemptsToday,
-    usage,
+    history,
     // Status is computed here, not in the popup, so the chips can never
     // disagree with the list they're describing.
     packs: STARTER_PACKS.map((p) => ({

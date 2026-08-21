@@ -10,6 +10,7 @@
 import { renderDoug, MOODS } from '../shared/doug.js';
 import { moodCopy } from '../shared/copy.js';
 import { isOpenEnded } from '../shared/session.js';
+import { historyGlance } from '../shared/history.js';
 
 const els = {
   statusChip: document.getElementById('statusChip'),
@@ -26,6 +27,7 @@ const els = {
   endBtn: document.getElementById('endBtn'),
 
   attemptsToday: document.getElementById('attemptsToday'),
+  attemptsWeek: document.getElementById('attemptsWeek'),
 
   siteCount: document.getElementById('siteCount'),
   addForm: document.getElementById('addForm'),
@@ -189,6 +191,7 @@ function render(state) {
 
   renderSession(state.session);
   els.attemptsToday.textContent = String(state.attemptsToday || 0);
+  els.attemptsWeek.textContent = historyGlance(state.history);
 
   renderPacks(state.packs);
   renderSites(state.settings.sites);

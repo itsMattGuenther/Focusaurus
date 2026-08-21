@@ -56,10 +56,15 @@
     </div>
   </section>
 
-  <!-- Today -->
-  <section class="panel panel--row">
-    <h2 class="label">Reached for a blocked site</h2>
-    <span class="stat" id="attemptsToday">0</span>
+  <!-- Today + the week's leader. The number is the glance; the line under
+       it is the one the roadmap asked for — "this week you reached for
+       Reddit 40 times" — compressed so the popup stays a control panel. -->
+  <section class="panel">
+    <div class="panel--row">
+      <h2 class="label">Reached today</h2>
+      <span class="stat" id="attemptsToday">0</span>
+    </div>
+    <p class="panel__note" id="attemptsWeek"></p>
   </section>
 
   <!-- Packs. Permanently available and independently toggleable — you can run

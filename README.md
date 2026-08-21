@@ -10,8 +10,9 @@ The bet: the reason website blockers fail isn't that they're too easy to bypass.
 It's that they feel like a cop, so you turn them off and never turn them back on.
 Focusaurus is trying to be the blocker you don't *want* to disable.
 
-> **Status:** v0.1. Blocking works, Doug exists, sessions run. Time tracking and
-> budgets are next — see [the roadmap](docs/ROADMAP.md).
+> **Status:** v0.2 in progress. Blocking works, Doug's proportions and icons
+> are redrawn, sessions run, attempt history reports the week. Accessibility
+> pass next, then time tracking — see [the roadmap](docs/ROADMAP.md).
 
 ---
 
@@ -35,10 +36,15 @@ a glance at a cartoon lizard instead of reading a dashboard.
 - **The interstitial** — blocked navigations *redirect* to a full-page Doug
   instead of Chrome's error page. It shows what you reached for, how many times
   today, and how long is left.
-- **Doug, in seven moods** — one SVG body, mood-swapped face. He breathes and
-  blinks. Run `npm run doug` to see the whole set.
+- **Doug, in seven moods** — one SVG body, mood-swapped face, redrawn in v0.2
+  against the specimen plate. He breathes and blinks. Run `npm run doug` to see
+  the whole set.
 - **Attempt counting** — "12th time today" is the stat we think actually changes
   behavior, because it exposes the reflex rather than the elapsed time.
+- **Attempt history** — trailing seven days, counted from the same buckets
+  the interstitial already writes. The popup names today's total and the
+  week's leader; settings lists every site, neutrally. "You reached for
+  reddit.com 40 times" is the sentence. Time spent is still ahead.
 - **Breathing-room overrides** — Doug sits there for 15 seconds before the
   "let me in for 5 minutes" button unlocks. Tunable; strict mode removes it.
 - **Category packs** — 77 sites across six toggleable categories (Social, Video,
@@ -120,7 +126,7 @@ lives in.
 | Phase | Name | What lands | |
 | --- | --- | --- | --- |
 | v0.1 | Blocks | Correct blocking, sessions, Doug, the interstitial | ✅ |
-| v0.2 | Doug | Settings page and schedule ✅ · pixel-art Doug and icons pending | ◐ |
+| v0.2 | Doug | Settings + schedule + redrawn Doug + icons + attempt history | ◐ |
 | v0.3 | Time | Per-domain active-time tracking with idle handling | |
 | v0.4 | Budgets | Per-site daily budgets, soft warnings, budget moods | |
 | v0.5 | Streaks | Day-over-day streaks, earned dino cosmetics | |

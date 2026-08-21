@@ -10,6 +10,7 @@
 
 import { renderDoug } from '../shared/doug.js';
 import { describeSchedule, isWithinSchedule } from '../shared/schedule.js';
+import { historyHeadline, timesPhrase } from '../shared/history.js';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -45,6 +46,12 @@ const els = {
   importBtn: document.getElementById('importBtn'),
   importFile: document.getElementById('importFile'),
   dataNote: document.getElementById('dataNote'),
+
+  historyTotal: document.getElementById('historyTotal'),
+  historyHeadline: document.getElementById('historyHeadline'),
+  historyDays: document.getElementById('historyDays'),
+  historySites: document.getElementById('historySites'),
+  historyEmpty: document.getElementById('historyEmpty'),
 
   versionNote: document.getElementById('versionNote'),
 };
@@ -218,6 +225,66 @@ function renderSites(sites) {
   }
 }
 
+function renderHistory(history) {
+  const total = history?.total || 0;
+  const days = history?.days || [];
+  const peak = history?.peak || 0;
+  const empty = total === 0;
+
+  els.historyTotal.textContent = String(total);
+  els.historyHeadline.textContent = historyHeadline(history);
+  els.historyEmpty.hidden = days.length > 0;
+  els.historySites.hidden = empty;
+
+  els.historyDays.replaceChildren();
+  els.historyDays.setAttribute('aria-label', 'Attempts per day, last seven days');
+  days.forEach((day, i) => {
+    const isToday = i === days.length - 1;
+    const li = document.createElement('li');
+    li.className = 'history__day';
+    if (isToday) li.dataset.today = 'true';
+    li.setAttribute(
+      'aria-label',
+      `${isToday ? 'Today' : day.weekdayName}, ${timesPhrase(day.attempts)}`,
+    );
+
+    const bar = document.createElement('div');
+    bar.className = 'history__bar';
+    bar.setAttribute('aria-hidden', 'true');
+    if (day.attempts > 0 && peak > 0) {
+      const fill = document.createElement('span');
+      fill.className = 'history__fill';
+      fill.style.height = `${Math.max(8, Math.round((day.attempts / peak) * 100))}%`;
+      bar.append(fill);
+    }
+
+    const dow = document.createElement('span');
+    dow.className = 'history__dow';
+    dow.textContent = day.weekday;
+
+    li.append(bar, dow);
+    els.historyDays.append(li);
+  });
+
+  els.historySites.replaceChildren();
+  for (const site of history?.sites || []) {
+    const li = document.createElement('li');
+    li.className = 'history__site';
+
+    const name = document.createElement('span');
+    name.className = 'history__site-name';
+    name.textContent = site.label;
+
+    const n = document.createElement('span');
+    n.className = 'history__site-n';
+    n.textContent = String(site.attempts);
+    n.setAttribute('aria-label', timesPhrase(site.attempts));
+
+    li.append(name, n);
+    els.historySites.append(li);
+  }
+}
+
 /* --- Render -------------------------------------------------------------- */
 
 function render() {
@@ -240,6 +307,7 @@ function render() {
   }
 
   renderSchedule(settings.schedule);
+  renderHistory(state.history);
   renderPacks(state.packs);
   renderSites(settings.sites);
 
