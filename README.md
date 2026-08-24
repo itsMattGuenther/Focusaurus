@@ -7,7 +7,7 @@ extensions do it. What's different is **Doug**, a small dinosaur who lives in th
 extension, knows how your day is going, and reacts to it.
 
 The bet: the reason website blockers fail isn't that they're too easy to bypass.
-It's that they feel like a cop, so you turn them off and never turn them back on.
+It's that they feel like a mall-cop, so you turn them off and never turn them back on.
 Focusaurus is trying to be the blocker you don't *want* to disable.
 
 > **Status:** v0.2 in progress. Blocking works, Doug's proportions and icons
