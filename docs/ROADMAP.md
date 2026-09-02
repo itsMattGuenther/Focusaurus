@@ -92,8 +92,29 @@ about finish:
       Doug's line (`#moodBecause`) rather than a hover tooltip — the popup is
       the glance surface, and hover would hide the explanation on every
       touchscreen. Landed with the settings page.
-- [ ] Accessibility pass on both surfaces: keyboard nav, focus order, contrast
-      audit against both palettes
+- [x] **Contrast audit against both palettes.** `dev/contrast.js` parses the
+      palettes out of `tokens.css` and measures every foreground/background
+      pair the UI actually renders — 26 pairs, both themes — against WCAG 2.1.
+      Ten rows failed, across five distinct problems. `--ink-faint` — the
+      `.label` small-caps voice, and the most-used color in the app — was
+      3.15:1 in light and 4.03:1 in dark. `--clay` on a sunk surface and on its
+      own wash, and the label on a hovered primary button, all sat in the low
+      fours. The count inside a partly-on pack chip was amber on amber wash at
+      2.9:1. Fixed by nudging four light tokens and one dark one, and by making
+      amber an accent rather than a text color.
+      `npm run contrast` prints the table; `test/contrast.test.js` asserts it,
+      so the palette can't drift back under AA
+      ([DESIGN.md §8](DESIGN.md#8-design-system)).
+      **Also found:** the two hand-duplicated dark blocks had diverged — the
+      explicit `[data-theme='dark']` one was missing all three shadow
+      overrides, so choosing dark on a light OS got warm light-mode shadows.
+      Fixed, and the test now compares the blocks declaration by declaration.
+- [ ] Accessibility pass on both surfaces: keyboard nav and focus order. The
+      contrast half is done above; what's left is walking both surfaces on the
+      keyboard alone, and the ARIA gaps that turned up while auditing —
+      the session-length chips carry their selection in a class with no
+      `aria-pressed` (the pack chips next to them do), and the add-site error
+      is written into a `<p>` nothing announces
 
 > ### ⚠️ The checkpoint that matters
 >

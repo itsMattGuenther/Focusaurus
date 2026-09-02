@@ -38,21 +38,21 @@
 
   --ink:           #241f19; /* primary text — warm near-black, never #000 */
   --ink-soft:      #5c544a; /* secondary text */
-  --ink-faint:     #8d8478; /* tertiary, labels, metadata */
+  --ink-faint:     #6b635a; /* tertiary, labels, metadata */
 
   --rule:          #ddd5c4; /* hairlines, borders */
   --rule-strong:   #c9bea8;
 
   /* Semantic accents. Moss = focus/good, clay = blocked/over, amber = caution. */
   --moss:          #4a6741;
-  --moss-bright:   #5f8353;
+  --moss-bright:   #597a4e;
   --moss-wash:     #e4ebdf;
 
-  --clay:          #a85434;
+  --clay:          #9d4e31;
   --clay-bright:   #c26843;
   --clay-wash:     #f6e4dc;
 
-  --amber:         #b5822a;
+  --amber:         #ac7b27;
   --amber-wash:    #f7edd8;
 
   /* Doug's own palette — kept separate so the character can be retinted
@@ -151,7 +151,7 @@
 
     --ink:           #ede6d8;
     --ink-soft:      #b3a996;
-    --ink-faint:     #7d7565;
+    --ink-faint:     #8d8472;
 
     --rule:          #322c22;
     --rule-strong:   #473f31;
@@ -182,14 +182,21 @@
   }
 }
 
-/* Explicit dark choice beats a light OS preference. */
+/* Explicit dark choice beats a light OS preference.
+
+   The same declarations as the block above, duplicated because a custom
+   property can't be shared between a rule inside a media query and one outside
+   it. Hand-duplication drifts — this block was missing the three shadow
+   overrides, so choosing dark on a light OS got warm light-mode shadows — so
+   test/contrast.test.js compares the two declaration by declaration. Edit one,
+   edit both. */
 :root[data-theme='dark'] {
   --paper:         #17140f;
   --paper-raised:  #211d16;
   --paper-sunk:    #100e0a;
   --ink:           #ede6d8;
   --ink-soft:      #b3a996;
-  --ink-faint:     #7d7565;
+  --ink-faint:     #8d8472;
   --rule:          #322c22;
   --rule-strong:   #473f31;
   --moss:          #7fa86f;
@@ -206,6 +213,11 @@
   --doug-plate:    #9cc08a;
   --doug-eye:      #f4efe3;
   --doug-ink:      #17140f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.35), 0 6px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.35), 0 16px 40px rgba(0, 0, 0, 0.5);
+
   --grain-opacity: 0.05;
 }
 

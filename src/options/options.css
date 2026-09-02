@@ -285,7 +285,7 @@
 }
 
 .chip[data-state='partial'] { border-color: var(--amber); border-style: dashed; color: var(--ink); }
-.chip[data-state='partial'] .chip__mark { background: var(--amber-wash); color: var(--amber); }
+.chip[data-state='partial'] .chip__mark { background: var(--amber-wash); color: var(--ink); }
 
 .chip[data-state='all'] {
   background: var(--moss);
@@ -293,7 +293,7 @@
   color: var(--paper-raised);
 }
 .chip[data-state='all']:hover { background: var(--moss-bright); border-color: var(--moss-bright); }
-.chip[data-state='all'] .chip__mark { background: rgba(255, 255, 255, 0.22); color: var(--paper-raised); }
+.chip[data-state='all'] .chip__mark { background: rgba(0, 0, 0, 0.12); color: var(--paper-raised); }
 
 .add { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); }
 

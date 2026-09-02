@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
+    "contrast": "node dev/contrast.js",
     "doug": "node dev/build-doug-sheet.js",
     "icons": "node dev/build-icons.mjs"
   },
