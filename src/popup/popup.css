@@ -208,9 +208,12 @@ body::after { display: none; }
   border-style: dashed;
   color: var(--ink);
 }
+/* The fraction is `--ink`, not `--amber`: amber on its own wash is 2.9:1, and
+   amber dark enough to carry 11px text stops being amber. The caution signal
+   lives in the dashed border and the wash; the number just has to be read. */
 .chip--pack[data-state='partial'] .chip__mark {
   background: var(--amber-wash);
-  color: var(--amber);
+  color: var(--ink);
 }
 
 .chip--pack[data-state='all'] {
@@ -222,8 +225,10 @@ body::after { display: none; }
   background: var(--moss-bright);
   border-color: var(--moss-bright);
 }
+/* Darkened rather than lightened. A white veil over moss left the tick at
+   4.1:1; sinking the pill matches the off state, which is also an inset. */
 .chip--pack[data-state='all'] .chip__mark {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.12);
   color: var(--paper-raised);
 }
 

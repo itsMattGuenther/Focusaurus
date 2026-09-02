@@ -11,8 +11,10 @@ It's that they feel like a cop, so you turn them off and never turn them back on
 Focusaurus is trying to be the blocker you don't *want* to disable.
 
 > **Status:** v0.2 in progress. Blocking works, Doug's proportions and icons
-> are redrawn, sessions run, attempt history reports the week. Accessibility
-> pass next, then time tracking — see [the roadmap](docs/ROADMAP.md).
+> are redrawn, sessions run, attempt history reports the week, and the palette
+> now clears WCAG AA in both themes with a test that keeps it there. Keyboard
+> and focus-order audit next, then time tracking — see
+> [the roadmap](docs/ROADMAP.md).
 
 ---
 
@@ -114,7 +116,9 @@ lives in.
   [Public Sans](https://github.com/uswds/public-sans) for body and UI. Both
   bundled locally, both OFL.
 - **Light and dark** — full token swap, with an explicit choice always beating
-  the OS preference.
+  the OS preference. Every text and focus-ring pair in both palettes clears
+  WCAG AA, measured by `npm run contrast` and asserted by the test suite, so a
+  later palette tweak can't quietly break it.
 - **Texture** — inline SVG fractal grain, so large paper fills have tooth
   instead of looking like dead vector space.
 - **Motion** — one orchestrated entrance on the interstitial with staggered
@@ -145,15 +149,19 @@ No build step and no dependencies — it's a plain unbundled MV3 extension.
 #   2. Enable "Developer mode"
 #   3. "Load unpacked" -> select this directory
 
-npm test      # 102 tests over the pure logic modules, no browser needed
-npm run doug  # regenerate dev/doug-sheet.html — every mood, both themes
+npm test        # 189 tests over the pure logic modules, no browser needed
+npm run doug    # regenerate dev/doug-sheet.html — every mood, both themes
+npm run contrast # WCAG contrast table for both palettes, with the selectors
 ```
 
 The modules most likely to harbour a subtle bug — rule compilation, site
 matching, mood resolution, schedule decisions, settings validation — are pure
 functions with no `chrome.*` calls, so they run under node's built-in test
 runner with no mocking
-([ADR-8](docs/DESIGN.md#adr-8-pure-core-testable-without-chrome)).
+([ADR-8](docs/DESIGN.md#adr-8-pure-core-testable-without-chrome)). The design
+system gets the same treatment: because no surface hardcodes a color, the
+palette is data in one file, and contrast is arithmetic rather than something
+you eyeball in a browser.
 
 ```
 src/
