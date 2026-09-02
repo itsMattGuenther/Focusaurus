@@ -512,7 +512,35 @@ them. Warm analog paper does the opposite work for free.
 - **Both themes are complete palettes**, and an explicit `data-theme` choice
   always beats the OS preference — the dark block is guarded
   `:root:not([data-theme='light'])` so a light choice can't be overridden by a
-  dark OS setting.
+  dark OS setting. The dark palette is therefore written **twice**, because a
+  custom property can't be shared between a rule inside a media query and one
+  outside it. Hand-duplication drifts, and it did: the explicit block was
+  missing all three shadow overrides. `test/contrast.test.js` now compares the
+  two blocks declaration by declaration. Edit one, edit both.
+- **The palette is audited, not eyeballed.** Because no surface hardcodes a
+  color, the whole palette is a set of hex literals in one file, so "is this
+  readable" is arithmetic. `dev/contrast.js` measures every foreground on every
+  background the UI actually renders — a hand-curated table, each row citing
+  the selector it came from — against WCAG 2.1: 4.5:1 for text, 3:1 for a
+  control boundary or focus ring. `npm run contrast` prints it; the test suite
+  asserts it. The pair table is curated rather than derived because deriving it
+  would mean resolving cascade and inheritance, and a table of pairs nobody can
+  see is worse than none — you end up darkening a token to satisfy a
+  combination that never renders.
+- **Accents are accents; `--ink` carries small text.** Amber on its own wash is
+  2.9:1, and an amber dark enough to carry 11px type isn't amber any more. So
+  the fraction inside a partly-on pack chip is `--ink`, and the caution signal
+  lives where it belongs — in the dashed border and the wash fill. Same reason
+  the tick pill on a full chip darkens its moss rather than veiling it white:
+  a white veil left the tick at 4.1:1, and sinking the pill also matches the
+  off state, which is already an inset.
+- **Hairlines are the one deliberate deviation.** `--rule` and `--rule-strong`
+  sit at 1.3–1.8:1 and stay there. 1.4.11 asks for 3:1 where the boundary is
+  what identifies the control, and every control here also carries a label, a
+  fill, or a shape, with focus drawn as a moss ring rather than a border
+  change. Raising them would turn a pressed-paper rule into a hard tan line on
+  every surface. Recorded in `DEVIATIONS` in `dev/contrast.js` and printed by
+  the report, so it stays a decision rather than an oversight.
 - **Grain over flat fills.** An inline SVG fractal-noise overlay gives paper its
   tooth. It's `position: fixed` and `pointer-events: none`, and it's disabled in
   the popup, where fixed positioning misbehaves inside a scroll container. Grain
