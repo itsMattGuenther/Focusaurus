@@ -77,7 +77,8 @@ tabs/SPA routes and full browser restart persistence.
 - `docs/STORE-LISTING.md`: description, single purpose, permissions and checklist.
 - `docs/store-assets/`: 128px store icon, 440×280 promo, 1400×560 marquee and three 1280×800 product screenshots.
 - `docs/ART-DIRECTION.md`, `assets/art/`, `dev/art-source/`: finished art,
-  preserved generation originals, prompts and authorized cleanup workflow.
+  transparent PNG sources, prompts and authorized cleanup workflow. Original
+  unprocessed generations are retained in Git history.
 
 ## Human gates before submission
 

@@ -1,28 +1,33 @@
-"""User-authorized cleanup of generated Doug PNGs; originals preserved.
-Requires Pillow, NumPy, scipy, opencv-python-headless. Only for art changes.
+"""Export transparent Doug PNG sources to production WebP.
+Use --clean-backgrounds for user-authorized cleanup of opaque generated sources.
+Requires Pillow; cleanup additionally needs NumPy, scipy, opencv-python-headless.
 """
+import argparse
 from pathlib import Path
 from PIL import Image, ImageFilter
-import numpy as np
-import cv2
-from scipy import ndimage
-import shutil
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--clean-backgrounds', action='store_true',
+                    help='replace opaque source PNG backgrounds with real alpha before export')
+args = parser.parse_args()
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / 'dev' / 'art-source'
 DEST = ROOT / 'assets' / 'art'
-SOURCE.mkdir(exist_ok=True)
-for file in DEST.glob('*.png'):
-    target = SOURCE / file.name
-    assert file.resolve().is_relative_to(ROOT) and target.resolve().is_relative_to(ROOT)
-    if not target.exists():
-        shutil.copy2(file, target)
+DEST.mkdir(exist_ok=True)
 
 base = Image.open(SOURCE / 'doug-chill.png').convert('RGBA')
 for file in sorted(SOURCE.glob('doug-*.png')):
     im = Image.open(file).convert('RGBA')
-    pixels = np.array(im)
-    if pixels[0, 0, 3] != 0:
+    changed = False
+    if im.getpixel((0, 0))[3] != 0:
+        if not args.clean_backgrounds:
+            raise ValueError(f'{file.name} has an opaque background. Clean the source before exporting '
+                             '(--clean-backgrounds enables the approved local cleanup).')
+        import numpy as np
+        import cv2
+        from scipy import ndimage
+        pixels = np.array(im)
         # The successful original provides anatomical certainty. Graph-cut
         # refines the edge against each expression's actual pixel colors.
         # This preserves dark body paint that a chroma key would eat away.
@@ -43,6 +48,7 @@ for file in sorted(SOURCE.glob('doug-*.png')):
             gold[int(im.height * .23):, :] = False
             mask[ndimage.binary_dilation(gold, iterations=3)] = cv2.GC_PR_FGD
             mask[gold] = cv2.GC_FGD
+        cv2.setRNGSeed(0)
         cv2.grabCut(cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), mask, None,
                     np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64),
                     5, cv2.GC_INIT_WITH_MASK)
@@ -59,16 +65,37 @@ for file in sorted(SOURCE.glob('doug-*.png')):
         foreground[neutral_edge] = False
         foreground = ndimage.binary_opening(foreground, iterations=1)
         foreground = ndimage.binary_fill_holes(foreground)
+        # Feather with nearby character colors, not the original checkerboard
+        # pixels. Otherwise antialiasing reintroduces a pale outline on dark UI.
+        _, nearest = ndimage.distance_transform_edt(~foreground, return_indices=True)
+        rgb[~foreground] = rgb[nearest[0][~foreground], nearest[1][~foreground]]
         alpha = Image.fromarray((foreground * 255).astype('uint8')).filter(ImageFilter.GaussianBlur(.45))
         pixels[:, :, 3] = np.array(alpha)
         pixels[pixels[:, :, 3] == 0, :3] = 0
         im = Image.fromarray(pixels)
+        changed = True
+    if args.clean_backgrounds:
+        # Remove near-invisible generated alpha noise outside the master too.
+        alpha = im.getchannel('A')
+        cleaned_alpha = alpha.point(lambda value: 0 if value <= 8 else value)
+        if alpha.tobytes() != cleaned_alpha.tobytes():
+            im.putalpha(cleaned_alpha)
+            changed = True
+    alpha = im.getchannel('A')
+    assert all(alpha.crop(box).getextrema()[1] == 0 for box in
+               [(0, 0, im.width, 1), (0, im.height - 1, im.width, im.height),
+                (0, 0, 1, im.height), (im.width - 1, 0, im.width, im.height)]), f'{file.name}: opaque border pixels'
+    assert alpha.histogram()[0] > im.width * im.height * .4, f'{file.name}: missing transparent background'
+    if changed:
+        # Keep the reusable PNG at its original resolution. The previous
+        # pipeline applied alpha only to the WebP, leaving fake checkerboards
+        # in the source folder. Unprocessed originals remain in Git history.
+        temporary = file.with_suffix('.tmp.png')
+        im.save(temporary, 'PNG', optimize=True)
+        temporary.replace(file)
+        print(f'{file.relative_to(ROOT)}: saved transparent {im.width}x{im.height} PNG', flush=True)
     im = im.resize((800, 800), Image.Resampling.LANCZOS)
     out = DEST / (file.stem + '.webp')
     im.save(out, 'WEBP', quality=88, method=6)
     assert im.getpixel((0, 0))[3] == 0
     print(f'{out.relative_to(ROOT)}: {out.stat().st_size:,} bytes', flush=True)
-
-for file in DEST.glob('doug-*.png'):
-    assert file.resolve().is_relative_to(DEST.resolve()) and (SOURCE / file.name).exists()
-    file.unlink()
