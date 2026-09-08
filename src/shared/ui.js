@@ -30,13 +30,25 @@ export function feedback(error) {
 
 export async function act(controls, work) {
   const list = controls ? (controls instanceof Element ? [controls] : [...controls]) : [];
+  const focused = document.activeElement;
+  const controlledFocus = list.some((el) => el === focused || el.contains(focused));
+  const restoreFocus = rememberFocus();
   const original = list.map((el) => el.disabled);
   list.forEach((el) => { el.disabled = true; });
   const error = document.getElementById('appError');
   if (error) error.hidden = true;
   try { return await work(); }
   catch (err) { feedback(err); return null; }
-  finally { list.forEach((el, i) => { if (el.isConnected) el.disabled = el.dataset.stateDisabled !== undefined ? el.dataset.stateDisabled === 'true' : original[i]; }); }
+  finally {
+    list.forEach((el, i) => { if (el.isConnected) el.disabled = el.dataset.stateDisabled !== undefined ? el.dataset.stateDisabled === 'true' : original[i]; });
+    // Disabling a focused button can blur it before a delayed worker reply.
+    // Restore the original control (or its replacement) without stealing focus
+    // if the user has moved to another field while the operation was pending.
+    if (controlledFocus && document.activeElement === document.body) {
+      if (focused.isConnected) focused.focus({ preventScroll: true });
+      else restoreFocus();
+    }
+  }
 }
 
 export function applyTheme(theme = 'system') {
