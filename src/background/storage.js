@@ -5,16 +5,15 @@
    Everything goes through typed accessors so no caller has to remember which
    area a given key lives in, or what its default shape is.
 
-   Area split (DESIGN.md ADR-7):
-     sync  — settings. Small, and worth carrying between machines for free.
-     local — usage, sessions, streaks. sync's quotas (8KB/item,
-             1800 writes/hour) can't survive per-minute time-series writes.
+   Settings and history stay local. The worker serializes every mutation.
+   Legacy Chrome sync settings migrate once, after a successful local write.
    ========================================================================== */
 
 import { parseInput, specKey } from '../shared/match.js';
 import { localDayKey } from '../shared/schedule.js';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+export const MAX_SITES = 300;
 
 export const DEFAULT_SETTINGS = {
   schemaVersion: SCHEMA_VERSION,
@@ -28,10 +27,7 @@ export const DEFAULT_SETTINGS = {
   strictness: 'firm', // gentle | firm | locked
   overrideMinutes: 5,
   onboarded: false,
-  /* NOTE: the whole array is one sync item, so it's bound by
-     QUOTA_BYTES_PER_ITEM (8192). That's roughly 80 sites. Plenty for a
-     personal blocklist; if it ever becomes a real ceiling, sites move to
-     local and lose cross-machine sync. */
+  theme: 'system',
   sites: [],
 };
 
@@ -48,30 +44,40 @@ const DEFAULT_LOCAL = {
   lastBlockedLine: null,
 };
 
-/* --- Settings (sync) ----------------------------------------------------- */
+/* --- Settings (local, with one-time legacy migration) ------------------- */
+
+export async function initializeStorage() {
+  await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
+  const { settings } = await chrome.storage.local.get('settings');
+  if (!settings) {
+    const legacy = await chrome.storage.sync.get(null);
+    const migrated = sanitizeSettings(legacy).settings;
+    await chrome.storage.local.set({ settings: migrated });
+  }
+  // Repeated cleanup is safe and also finishes a migration interrupted after
+  // the local write. Do not clear any unrelated keys.
+  await chrome.storage.sync.remove(Object.keys(DEFAULT_SETTINGS));
+}
 
 export async function getSettings() {
-  const stored = await chrome.storage.sync.get(null);
-  // Shallow-merge per top-level key so a newly added default appears for
-  // existing users without a migration step.
-  return {
-    ...DEFAULT_SETTINGS,
-    ...stored,
-    dino: { ...DEFAULT_SETTINGS.dino, ...(stored.dino || {}) },
-    schedule: { ...DEFAULT_SETTINGS.schedule, ...(stored.schedule || {}) },
-    sites: Array.isArray(stored.sites) ? stored.sites : [],
-  };
+  const { settings } = await chrome.storage.local.get('settings');
+  return sanitizeSettings(settings ?? DEFAULT_SETTINGS).settings;
 }
 
 export async function patchSettings(patch) {
-  await chrome.storage.sync.set(patch);
-  return getSettings();
+  const current = await getSettings();
+  const { settings } = sanitizeSettings({ ...current, ...patch,
+    dino: { ...current.dino, ...patch.dino },
+    schedule: { ...current.schedule, ...patch.schedule },
+  });
+  await chrome.storage.local.set({ settings });
+  return settings;
 }
 
 /* --- Local state -------------------------------------------------------- */
 
 export async function getLocal() {
-  const stored = await chrome.storage.local.get(null);
+  const stored = await chrome.storage.local.get(Object.keys(DEFAULT_LOCAL));
   return { ...DEFAULT_LOCAL, ...stored };
 }
 
@@ -82,7 +88,7 @@ export async function patchLocal(patch) {
 /* --- Sites -------------------------------------------------------------- */
 
 function newSiteId() {
-  return `s_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  return `s_${crypto.randomUUID()}`;
 }
 
 /**
@@ -98,6 +104,7 @@ export async function addSite(rawInput, { pack = 'custom', mode = 'block' } = {}
   if (!spec) return { ok: false, reason: 'invalid' };
 
   const settings = await getSettings();
+  if (settings.sites.length >= MAX_SITES) return { ok: false, reason: 'site-limit' };
   const key = specKey(spec);
   if (settings.sites.some((s) => specKey(s.match) === key)) {
     return { ok: false, reason: 'duplicate' };
@@ -164,13 +171,13 @@ export async function getUsage(date = new Date()) {
 export async function recordAttempt(siteId) {
   const key = usageKey();
   const usage = await getUsage();
-  const entry = usage.perSite[siteId] || { activeSeconds: 0, attempts: 0, overrides: 0 };
+  const entry = Object.hasOwn(usage.perSite, siteId) ? usage.perSite[siteId] : { activeSeconds: 0, attempts: 0, overrides: 0 };
   entry.attempts += 1;
   usage.perSite[siteId] = entry;
 
   const local = await getLocal();
   const cutoff = Date.now() - 10 * 60 * 1000;
-  const recentAttempts = [...local.recentAttempts.filter((t) => t > cutoff), Date.now()];
+  const recentAttempts = [...local.recentAttempts.filter((t) => t > cutoff), Date.now()].slice(-1000);
 
   await chrome.storage.local.set({ [key]: usage, recentAttempts });
   return entry.attempts;
@@ -179,7 +186,7 @@ export async function recordAttempt(siteId) {
 export async function recordOverride(siteId) {
   const key = usageKey();
   const usage = await getUsage();
-  const entry = usage.perSite[siteId] || { activeSeconds: 0, attempts: 0, overrides: 0 };
+  const entry = Object.hasOwn(usage.perSite, siteId) ? usage.perSite[siteId] : { activeSeconds: 0, attempts: 0, overrides: 0 };
   entry.overrides += 1;
   usage.perSite[siteId] = entry;
   await chrome.storage.local.set({ [key]: usage });
@@ -216,7 +223,7 @@ export async function getUsageDays(dayKeys) {
 export async function pruneUsage(keepDays = 90) {
   const all = await chrome.storage.local.get(null);
   const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - keepDays);
+  cutoff.setDate(cutoff.getDate() - (keepDays - 1));
   const cutoffKey = usageKey(cutoff);
 
   const stale = Object.keys(all).filter((k) => k.startsWith('usage:') && k < cutoffKey);
@@ -229,7 +236,6 @@ export async function pruneUsage(keepDays = 90) {
    ========================================================================== */
 
 const CLOCK_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
-const MAX_SITES = 300;
 const MAX_DINO_NAME = 24;
 
 /**
@@ -280,8 +286,11 @@ export function sanitizeSettings(raw) {
     return fallback;
   };
 
+  if (rawSchedule.enabled !== undefined && typeof rawSchedule.enabled !== 'boolean') {
+    warnings.push('Schedule enabled must be true or false; work hours were turned off.');
+  }
   const schedule = {
-    enabled: Boolean(rawSchedule.enabled),
+    enabled: rawSchedule.enabled === true,
     days,
     start: clock(rawSchedule.start, DEFAULT_SETTINGS.schedule.start, 'start'),
     end: clock(rawSchedule.end, DEFAULT_SETTINGS.schedule.end, 'end'),
@@ -298,6 +307,7 @@ export function sanitizeSettings(raw) {
   /* sites */
   const sites = [];
   const seen = new Set();
+  const ids = new Set();
   let dropped = 0;
   const rawSites = Array.isArray(src.sites) ? src.sites : [];
   if (!Array.isArray(src.sites) && src.sites !== undefined) warnings.push('Site list was not a list.');
@@ -321,14 +331,20 @@ export function sanitizeSettings(raw) {
     if (seen.has(key)) { dropped += 1; continue; }
     seen.add(key);
 
+    let id = entry.id;
+    if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(id) ||
+        ['__proto__', 'prototype', 'constructor'].includes(id) || ids.has(id)) {
+      id = newSiteId();
+      if (entry.id !== undefined) warnings.push('A site identifier was repaired.');
+    }
+    ids.add(id);
+    if (entry.mode === 'budget') warnings.push(`${spec.value}: time budgets are not supported; converted to a session block.`);
     sites.push({
-      id: typeof entry.id === 'string' && entry.id ? entry.id : newSiteId(),
+      id,
       label: spec.value,
       match: spec,
-      mode: entry.mode === 'budget' ? 'budget' : 'block',
-      budgetMinutes: Number.isFinite(Number(entry.budgetMinutes))
-        ? Math.max(1, Math.round(Number(entry.budgetMinutes)))
-        : null,
+      mode: 'block',
+      budgetMinutes: null,
       pack: typeof entry.pack === 'string' ? entry.pack : 'custom',
     });
   }
@@ -342,6 +358,7 @@ export function sanitizeSettings(raw) {
       strictness,
       overrideMinutes,
       onboarded: Boolean(src.onboarded),
+      theme: ['light', 'dark'].includes(src.theme) ? src.theme : 'system',
       sites,
     },
     warnings,
@@ -369,24 +386,39 @@ export async function exportSettings() {
  * Replace settings from an exported file.
  * Usage history is untouched — this is a config restore, not a state restore.
  */
-export async function importSettings(json) {
+export async function importSettings(json, validate = async () => true) {
+  if (typeof json !== 'string' || json.length > 1_000_000) return { ok: false, reason: 'too-large' };
   let parsed;
   try {
     parsed = JSON.parse(json);
   } catch {
     return { ok: false, reason: 'not-json' };
   }
-  if (!parsed || typeof parsed !== 'object') return { ok: false, reason: 'not-json' };
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { ok: false, reason: 'wrong-format' };
   if (parsed.format && parsed.format !== EXPORT_FORMAT) {
     return { ok: false, reason: 'wrong-format' };
   }
 
+  if (Number(parsed.version ?? parsed.schemaVersion ?? 1) > SCHEMA_VERSION) {
+    return { ok: false, reason: 'newer-version' };
+  }
+  const source = parsed.settings ?? parsed;
+  if (!source || typeof source !== 'object' || Array.isArray(source) ||
+      !Array.isArray(source.sites)) return { ok: false, reason: 'wrong-format' };
+
   // Accept either the wrapped export or a bare settings object, since people
   // will inevitably paste the inner half.
-  const { settings, warnings } = sanitizeSettings(parsed.settings ?? parsed);
+  const { settings, warnings } = sanitizeSettings(source);
+  if (!(await validate(settings))) return { ok: false, reason: 'unsupported-pattern' };
 
   // Overwrite rather than clear-then-write: a failure between the two would
   // leave the extension with no settings at all.
-  await chrome.storage.sync.set(settings);
+  await chrome.storage.local.set({ settings });
   return { ok: true, warnings, siteCount: settings.sites.length };
+}
+
+export async function clearHistory() {
+  const all = await chrome.storage.local.get(null);
+  await chrome.storage.local.remove(Object.keys(all).filter((key) => key.startsWith('usage:')));
+  await patchLocal({ recentAttempts: [], lastBlockedLine: null, streak: DEFAULT_LOCAL.streak });
 }

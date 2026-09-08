@@ -11,18 +11,21 @@
 <body>
   <div class="page">
     <header class="masthead">
-      <span class="masthead__mark">Focusaurus</span>
+      <span class="masthead__mark"><img src="../../assets/icons/mark.svg" width="26" height="26" alt="">Focusaurus</span>
       <span class="label" id="tagNumber">Field note</span>
     </header>
+    <p class="app-error" id="appError" role="alert" hidden></p>
 
     <main class="stage">
       <figure class="portrait">
         <div class="portrait__vignette" aria-hidden="true"></div>
         <div class="portrait__doug" id="dougMount"></div>
+        <figcaption class="portrait__caption"><span class="label" id="portraitName">Doug · Focusaurus</span><span>Your quietly persistent companion.</span></figcaption>
       </figure>
 
       <div class="says">
-        <p class="says__line display" id="line">Not right now.</p>
+        <p class="label says__eyebrow">A moment for what matters</p>
+        <h1 class="says__line display" id="line">A small pause. A fresh start.</h1>
         <p class="says__sub" id="subline"></p>
 
         <!-- Specimen tag: the field-guide label. Metadata, set like a museum
@@ -53,6 +56,7 @@
         <p class="actions__note" id="overrideNote"></p>
       </div>
     </main>
+    <footer class="field-footer"><span>One tab at a time.</span><span><button class="text-button" id="retryBtn" type="button">Refresh status</button> · <a href="../privacy/privacy.html">Local &amp; private</a></span></footer>
   </div>
 
   <script type="module" src="blocked.js"></script>

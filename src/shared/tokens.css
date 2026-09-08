@@ -242,6 +242,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+[hidden] { display: none !important; }
+:root { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { color-scheme: dark; } }
+a { color: var(--moss); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }
+.app-error { margin: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--clay); border-radius: var(--radius-md); color: var(--clay); background: var(--paper-raised); font-size: var(--text-sm); }
+
 /* Grain overlay. Fixed + non-interactive so it never eats a click. */
 body::after {
   content: '';
@@ -281,6 +289,8 @@ body::after {
   letter-spacing: var(--tracking-tight);
   font-variation-settings: var(--display-opsz-mid);
 }
+
+.wordmark, .masthead__mark { display: inline-flex; align-items: center; gap: 10px; }
 
 /* --- Buttons ----------------------------------------------------------- */
 

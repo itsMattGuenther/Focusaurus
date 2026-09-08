@@ -32,8 +32,15 @@ function escapeRegex(s) {
 export function parseInput(raw) {
   if (typeof raw !== 'string') return null;
 
-  let s = raw.trim().toLowerCase();
-  if (!s) return null;
+  let s = raw.trim();
+  if (!s || s.length > 500 || /\s/.test(s)) return null;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s) && !/^https?:\/\//i.test(s)) return null;
+  let parsed;
+  try { parsed = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`); }
+  catch { return null; }
+  if (parsed.username || parsed.password) return null;
+  // Chrome canonicalizes IDNs, dot segments and non-ASCII paths before DNR.
+  s = parsed.hostname.toLowerCase().replace(/\.$/, '') + parsed.pathname;
 
   // Drop a scheme if present, plus any credentials.
   s = s.replace(/^[a-z][a-z0-9+.-]*:\/\//, '');
@@ -92,7 +99,7 @@ export function toRegexFilter(spec) {
 
   if (spec.kind === MATCH_DOMAIN) {
     // Tail allows :port, /path, ?query, #fragment, or nothing at all.
-    return `^https?://${subdomains}${escapeRegex(spec.value)}(?:[:/?#].*)?$`;
+    return `^https?://${subdomains}${escapeRegex(spec.value)}\\.?(?::[0-9]+)?(?:[/?#].*)?$`;
   }
 
   if (spec.kind === MATCH_URL_PREFIX) {
@@ -100,7 +107,7 @@ export function toRegexFilter(spec) {
     const host = escapeRegex(spec.value.slice(0, slash));
     const path = escapeRegex(spec.value.slice(slash));
     // Path must end at a boundary so /shorts doesn't match /shortsomething.
-    return `^https?://${subdomains}${host}${path}(?:[/?#].*)?$`;
+    return `^https?://${subdomains}${host}\\.?(?::[0-9]+)?${path}(?:[/?#].*)?$`;
   }
 
   throw new TypeError(`toRegexFilter: unknown kind "${spec.kind}"`);

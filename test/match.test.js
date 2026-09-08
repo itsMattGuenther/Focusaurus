@@ -115,3 +115,17 @@ test('specKey collapses inputs that normalize identically', () => {
     specKey(parseInput('reddit.com')),
   );
 });
+
+test('ports, trailing hostname dots, IDNs and URL-encoded paths match canonical Chrome URLs', () => {
+  assert.ok(matches(parseInput('youtube.com/shorts'), 'https://youtube.com:8443/shorts/a'));
+  assert.ok(matches(parseInput('youtube.com/shorts'), 'https://youtube.com./shorts/a'));
+  assert.ok(matches(parseInput('bücher.example/lesen'), 'https://xn--bcher-kva.example/lesen'));
+  assert.ok(matches(parseInput('example.com/café'), 'https://example.com/caf%C3%A9'));
+  assert.equal(parseInput('example.com/a/../b').value, 'example.com/b');
+});
+
+test('unsupported schemes, credentials, whitespace and excessive patterns are refused', () => {
+  for (const input of ['ftp://example.com', 'https://user:pass@example.com', 'example.com/a b', `example.com/${'x'.repeat(600)}`]) {
+    assert.equal(parseInput(input), null);
+  }
+});
