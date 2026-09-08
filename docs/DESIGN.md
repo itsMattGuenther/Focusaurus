@@ -16,7 +16,7 @@ src/welcome/     first session setup
 src/options/     schedule, preferences, sites, history and backup
 src/privacy/     bundled privacy policy; build also emits a public-ready copy
 assets/art/     seven compressed character illustrations
-assets/icons/   canonical SVG profile mark and generated PNG sizes
+assets/icons/   happy Doug rescaled into four PNG icon sizes
 assets/fonts/   locally bundled fonts and full redistribution notices
 ```
 
@@ -118,8 +118,8 @@ dialogs. The per-second countdown is not a live region.
 
 `tokens.css` owns UI palette, typography, spacing and motion tokens. New Doug
 art uses an SVG image wrapper around local WebP files, with escaped accessible
-names and explicit motion reduction. The icon has a simplified profile so it
-remains recognizable at 16 pixels. See ART-DIRECTION.md for sources and prompts.
+names and explicit motion reduction. The icons use that same happy illustration,
+rescaled with transparent padding. See ART-DIRECTION.md for sources and prompts.
 
 Node tests cover matching, DNR compilation, redirects, schedules, sessions,
 settings, history, moods, palette contrast, assets and serialization. Playwright

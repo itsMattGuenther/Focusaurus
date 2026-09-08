@@ -54,7 +54,7 @@ accessibility checks, icon generation and ZIP creation.
 npm ci
 npx playwright install chromium
 npm run verify       # static checks, unit tests, real extension browser tests, build
-npm run icons        # toolbar/store icon set from the canonical SVG mark
+npm run icons        # toolbar/store PNGs rescaled from happy Doug
 npm run doug         # all seven illustrations at different sizes/in both themes
 npm run review       # local screenshots of every application surface
 npm run store-art    # actual product screenshots and promotional tiles
@@ -79,7 +79,7 @@ math, moods and history. UI pages use a shared message/error/theme layer.
 
 Doug is now an original gouache and colored-pencil character with seven matched
 expressions. An SVG wrapper sizes the bundled WebP art and supplies accessible
-labels. A simpler profile mark keeps the same identity readable at 16 pixels.
+labels. Toolbar and store icons rescale the same happy Doug illustration.
 The paper/moss/clay palette, local Fraunces and Public Sans, and reduced-motion
 behavior form one visual system. [Art direction and generation prompts](docs/ART-DIRECTION.md).
 
