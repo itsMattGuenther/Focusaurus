@@ -54,10 +54,10 @@ used; the user's normal browser profile was not modified.
 | Accessibility subset | Zero Axe WCAG 2/2.1 A/AA violations across popup, welcome, settings, blocked and privacy pages in both themes. Measured 360px reflow and reduced motion. Automated coverage is not accessibility certification. |
 | Visual review | Reviewed illustrated mood assets, actual light/dark screens, narrow settings, toolbar mark and store graphics. ART-DIRECTION.md records sources and prompts. |
 | `npm run build` | Pass: 48 runtime files, allowlisted contents, each decompressed byte checked; ZIP and SHA-256 generated. |
-| Artifact repeatability | A second build produced the same archive checksum. Final archive: 757,606 bytes; authoritative hash is in the adjacent `.sha256` file. |
+| Artifact repeatability | A second build produced the same archive checksum. The current archive size/contents are in `package-manifest.json`; its hash is in the adjacent `.sha256` file. |
 | Standalone privacy page | Loaded successfully in Chromium with no missing resources or links back into the extension. |
 | Dependency audit | `npm audit`: zero reported vulnerabilities at verification time. No third-party runtime dependencies. |
-| CI | Workflow configured for checks and source/package browser suites on Linux. A remote CI run has not been performed in this session. |
+| CI | GitHub Actions runs checks and source/package browser suites on Linux. Current results are attached to [release PR #3](https://github.com/matthewguenther/Focusaurus/pull/3); merging waits for successful checks. |
 
 Browser coverage includes fresh setup/all packs, concurrent writes, actual DNR
 redirects/onward navigation, worker-enforced pauses, locked release and message
@@ -99,8 +99,8 @@ These remain open for the publisher/release reviewer:
 - [ ] Review the dashboard's current permissions/data declarations against the
   policy, upload the archive/images and submit for Chrome Web Store review.
 
-Store acceptance and publication are external steps. No account action, upload,
-message to another person or deployment was performed.
+Store acceptance and publication are external steps. No Chrome Web Store
+submission, privacy-site deployment or message to a publisher contact was performed.
 
 ## Product follow-through
 
