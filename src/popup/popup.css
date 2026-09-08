@@ -7,7 +7,8 @@
    ========================================================================== */
 
 body {
-  width: 372px;
+  width: 396px;
+  max-width: 100vw;
   max-height: 580px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -77,14 +78,23 @@ body::after { display: none; }
 
 .hero {
   display: grid;
-  grid-template-columns: 92px 1fr;
+  grid-template-columns: 118px 1fr;
   gap: var(--space-4);
   align-items: center;
   padding: var(--space-5);
   border-bottom: 1px solid var(--rule);
 }
 
+.hero__eyebrow { font-size: 9px; letter-spacing: .1em; margin: 0 0 7px; }
+.hero__says { font-size: 23px; font-weight: 500; }
+.popup-footer { padding: 16px 24px; display: flex; justify-content: space-between; border-top: 1px solid var(--rule); font-size: 11px; color: var(--ink-soft); }
+.iconbtn { min-width: 30px; min-height: 30px; }
+.site__remove { min-width: 28px; min-height: 28px; }
+
 .hero__portrait { position: relative; margin: 0; }
+.hero__text { min-width: 0; overflow-wrap: anywhere; }
+.hero__portrait #dougMount { position: relative; }
+.add .field { min-width: 0; }
 
 .hero__vignette {
   position: absolute;
@@ -345,4 +355,3 @@ body::after { display: none; }
 }
 .site__remove:hover { background: var(--clay-wash); color: var(--clay); }
 .site__remove:focus-visible { outline: 2px solid var(--clay); outline-offset: 1px; }
-

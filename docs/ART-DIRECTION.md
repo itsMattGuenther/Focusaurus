@@ -1,0 +1,44 @@
+# Doug · art direction and provenance
+
+The user selected a warm illustrated field guide on 2026-09-08. Doug is a friendly, understated coworker: moss-green gouache, oat muzzle/belly, clay plates, expressive ink eyes, and an organic dinosaur silhouette. The former geometric SVG figure is replaced on every surface. The full figure remains painted in both themes; the simplified profile mark preserves recognition at toolbar sizes.
+
+## Delivered assets
+
+- `assets/art/doug-{chill,focused,locked_in,side_eye,bummed,stoked,asleep}.webp`: seven 800 × 800 RGBA character states, under 200 KB each.
+- `assets/icons/mark.svg`: original code-authored simplified profile; generated PNGs at 16, 32, 48 and 128 pixels.
+- `docs/store-assets/`: promotional tiles and screenshots captured from the real extension.
+- `dev/art-source/`: preserved image-generation PNG sources, excluded from the runtime package.
+
+The built-in image generation tool created the master illustration and expression edits. No third-party character references were used. Expression edits returned baked checkerboard backgrounds; the user explicitly authorized local cleanup. `dev/prepare-art.py` preserves source files and uses a reference-guided graph-cut mask, then compresses the result as WebP. It requires Pillow, NumPy, SciPy and opencv-python-headless. Those are art-authoring tools only; normal build/install/test paths need no Python.
+
+`npm run doug` regenerates the visual review sheet. Review every mood on paper and lamplight, at full size and 118px, before replacing an asset. Motion is limited to subtle breathing and completely disabled by reduced-motion preference. Never squash the entire face to simulate a blink on a painted image.
+
+## Final generation prompts
+
+### Master illustration
+
+Use case: illustration-story. Asset type: final production character illustration for Focusaurus, a calm productivity Chrome extension with a warm naturalist field-guide aesthetic. Create a completely original, beautifully drawn dinosaur named Doug, an understated friendly coworker. A compact plump little bipedal dinosaur, unmistakable dinosaur silhouette, large rounded rectangular muzzle and expressive intelligent small black eyes, a short sturdy neck, tiny forearms, powerful soft thighs, three cream toes, a long tapered curved tail extending left, a few small ochre/rust rounded triangular plates along the back. Moss green skin, pale oat belly and muzzle underside, muted clay cheeks, darker forest-green shadows, fine warm dark ink contour with subtle irregularity. Three-quarter profile facing right, full body, calm small knowing smile, relaxed hands together, relaxed upright stance. Premium contemporary editorial gouache and colored-pencil illustration from a lovingly made nature journal: tactile dry-brush texture and layered pigments, crafted organic anatomy, sophisticated restrained palette, minimal fine details, expressive clear readable face. NOT a toy, not 3D, not emoji, not clipart, not an assemblage of ellipses, not a generic dragon. One single character centered with entire tail and feet visible, substantial empty margin on all sides. Transparent background with real alpha, no paper rectangle or checkerboard baked in, no scenery, no accessories, no text, no letters, no labels, no border, no watermark. Square composition approximately 1024px. Gentle grounded character with warmth and personality that works on cream paper or dark brown background.
+
+### focused
+
+Use case: identity-preserve. Edit target: attached Doug character illustration. Create final Focusaurus character mood 'focused'. Change ONLY facial expression as follows: Quietly focused, calmly concentrating with attentive eye looking forward and an almost straight small mouth. Keep brows relaxed and determined, never angry. Same standing pose. Preserve Doug's exact identity, same head-to-body proportions, silhouette, moss green skin, oat muzzle and belly, warm clay plates, cheeks, fine dark contour, tactile gouache/colored pencil texture, cream toes, tail, three-quarter view facing right and placement in square canvas. Entire dinosaur remains fully visible with margin. Keep the real transparent alpha background, no rectangle, no scenery, no text, no watermark. This is a matched set of character states for one application, so visual consistency is paramount.
+
+### locked_in
+
+Use case: identity-preserve. Edit target: attached Doug character illustration. Create final Focusaurus character mood 'locked_in'. Change ONLY facial expression as follows: Deeply in a flow state, calm confident small smile, attentive eye; add exactly two tiny hand-painted golden four-point glints just above and left of head, detached from the body. Same standing pose. Preserve Doug's exact identity, same head-to-body proportions, silhouette, moss green skin, oat muzzle and belly, warm clay plates, cheeks, fine dark contour, tactile gouache/colored pencil texture, cream toes, tail, three-quarter view facing right and placement in square canvas. Entire dinosaur remains fully visible with margin. Keep the real transparent alpha background, no rectangle, no scenery, no text, no watermark. This is a matched set of character states for one application, so visual consistency is paramount.
+
+### side_eye
+
+Use case: identity-preserve. Edit target: attached Doug character illustration. Create final Focusaurus character mood 'side_eye'. Change ONLY facial expression as follows: A wry gentle sideways glance toward the viewer, slightly raised eyebrow and tiny asymmetric knowing smile. Amused and understanding, never judgmental. Same standing pose. Preserve Doug's exact identity, same head-to-body proportions, silhouette, moss green skin, oat muzzle and belly, warm clay plates, cheeks, fine dark contour, tactile gouache/colored pencil texture, cream toes, tail, three-quarter view facing right and placement in square canvas. Entire dinosaur remains fully visible with margin. Keep the real transparent alpha background, no rectangle, no scenery, no text, no watermark. This is a matched set of character states for one application, so visual consistency is paramount.
+
+### bummed
+
+Use case: identity-preserve. Edit target: attached Doug character illustration. Create final Focusaurus character mood 'bummed'. Change ONLY facial expression as follows: Softly concerned and sympathetic: eyebrow raised at inner corner, slight downward gaze, a very subtle rueful mouth. He is on your side after a distraction; no tears, no shame, never miserable. Same standing pose. Preserve Doug's exact identity, same head-to-body proportions, silhouette, moss green skin, oat muzzle and belly, warm clay plates, cheeks, fine dark contour, tactile gouache/colored pencil texture, cream toes, tail, three-quarter view facing right and placement in square canvas. Entire dinosaur remains fully visible with margin. Keep the real transparent alpha background, no rectangle, no scenery, no text, no watermark. This is a matched set of character states for one application, so visual consistency is paramount.
+
+### stoked
+
+Use case: identity-preserve. Edit target: attached Doug character illustration. Create final Focusaurus character mood 'stoked'. Change ONLY facial expression as follows: Quiet delight, warm smile with mouth slightly open, eye closed in a happy upward curved arc. Keep arms and pose the same, no accessories, no exaggerated grin. Preserve Doug's exact identity, same head-to-body proportions, silhouette, moss green skin, oat muzzle and belly, warm clay plates, cheeks, fine dark contour, tactile gouache/colored pencil texture, cream toes, tail, three-quarter view facing right and placement in square canvas. Entire dinosaur remains fully visible with margin. Keep the real transparent alpha background, no rectangle, no scenery, no text, no watermark. This is a matched set of character states for one application, so visual consistency is paramount.
+
+### asleep
+
+Use case: identity-preserve. Edit target: attached Doug character illustration. Create final Focusaurus character mood 'asleep'. Change ONLY facial expression as follows: Peaceful sleepy resting expression, eye fully closed as a soft curved ink line, relaxed contented smile, very slightly lowered head. Keep standing pose, no letters or sleep symbols. Preserve Doug's exact identity, same head-to-body proportions, silhouette, moss green skin, oat muzzle and belly, warm clay plates, cheeks, fine dark contour, tactile gouache/colored pencil texture, cream toes, tail, three-quarter view facing right and placement in square canvas. Entire dinosaur remains fully visible with margin. Keep the real transparent alpha background, no rectangle, no scenery, no text, no watermark. This is a matched set of character states for one application, so visual consistency is paramount.

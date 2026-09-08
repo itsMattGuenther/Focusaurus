@@ -1,185 +1,83 @@
-/* ==========================================================================
-   The interstitial — behavior
-   ========================================================================== */
-
 import { renderDoug } from '../shared/doug.js';
-import { blockedCopy } from '../shared/copy.js';
 import { displayHost, parseInterstitial, safeExternalUrl } from '../shared/redirect.js';
+import { isOpenEnded } from '../shared/session.js';
+import { send, act, requireSuccess, feedback, watchState } from '../shared/ui.js';
 
-const els = {
-  doug: document.getElementById('dougMount'),
-  line: document.getElementById('line'),
-  subline: document.getElementById('subline'),
-  site: document.getElementById('siteValue'),
-  attempts: document.getElementById('attemptsValue'),
-  session: document.getElementById('sessionValue'),
-  tagNumber: document.getElementById('tagNumber'),
-  closeBtn: document.getElementById('closeBtn'),
-  overrideBtn: document.getElementById('overrideBtn'),
-  overrideLabel: document.getElementById('overrideLabel'),
-  overrideNote: document.getElementById('overrideNote'),
-};
-
-/* --- Inputs -------------------------------------------------------------- */
-
-/* Site id from the query, original URL from the fragment — shared/redirect.js
-   owns both halves of that contract and explains the shape. */
-const { siteId, rawTarget } = parseInterstitial(location.search, location.hash);
-
-/* Scheme-gated: this value is attacker-influenced, since any site can navigate
-   you to a crafted URL that lands in our fragment. It is also only ever written
-   to the DOM with textContent, never innerHTML. */
+const el = (id) => document.getElementById(id);
+const { rawTarget } = parseInterstitial(location.search, location.hash);
 const target = safeExternalUrl(rawTarget);
+let context = null;
+let loading = false;
+let opening = false;
 
-/* --- Helpers ------------------------------------------------------------- */
+const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
 
-function ordinal(n) {
-  const mod100 = n % 100;
-  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
-  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
-}
-
-function send(action, payload = {}) {
-  return chrome.runtime.sendMessage({ action, ...payload });
-}
-
-/* --- Session countdown --------------------------------------------------- */
-
-let countdownTimer = null;
-
-function renderCountdown(endsAt) {
-  if (!endsAt) {
-    els.session.textContent = 'no session';
+function paint() {
+  if (!context) return;
+  const ctx = context;
+  el('siteValue').textContent = ctx.site?.label || displayHost(target) || 'This site';
+  el('portraitName').textContent = `${ctx.name || 'Doug'} · Focusaurus`;
+  el('overrideBtn').hidden = !target || (!ctx.released && ctx.strictnessDelay === null);
+  if (ctx.released) {
+    renderDoug(el('dougMount'), 'chill', { name: ctx.name });
+    el('line').textContent = 'A little room to choose.';
+    el('subline').textContent = 'This page is available again. Carry on when you’re ready.';
+    el('sessionValue').textContent = 'Not blocking';
+    el('attemptsValue').textContent = 'All clear';
+    el('overrideLabel').textContent = 'Continue to site';
+    el('overrideBtn').disabled = opening;
+    el('overrideNote').textContent = 'Your next step is yours.';
     return;
   }
-  const tick = () => {
-    const ms = endsAt - Date.now();
-    if (ms <= 0) {
-      els.session.textContent = 'just now';
-      clearInterval(countdownTimer);
-      return;
-    }
-    const mins = Math.floor(ms / 60000);
-    const secs = Math.floor((ms % 60000) / 1000);
-    els.session.textContent =
-      mins >= 60
-        ? `in ${Math.floor(mins / 60)}h ${mins % 60}m`
-        : `in ${mins}:${String(secs).padStart(2, '0')}`;
-  };
-  tick();
-  countdownTimer = setInterval(tick, 1000);
-}
-
-/* --- Override ------------------------------------------------------------
-   Breathing room, not a wall and not a free pass. Doug simply stands there
-   for N seconds before the button unlocks. The delay is the mechanism: it
-   interrupts the automaticity of the reflex, which is the thing we're
-   actually up against (DESIGN.md §5). */
-
-function armOverride({ delaySeconds, overrideMinutes }) {
-  if (delaySeconds === null || delaySeconds === undefined) {
-    els.overrideBtn.hidden = true;
-    els.overrideNote.textContent = 'Strict mode — no overrides until the session ends.';
+  renderDoug(el('dougMount'), ctx.attempts >= 8 ? 'bummed' : 'side_eye', { name: ctx.name });
+  el('line').textContent = ctx.copy?.line || 'A small pause. A fresh start.';
+  el('subline').textContent = ctx.copy?.subline || 'You made this space for something that matters.';
+  el('attemptsValue').textContent = ctx.attempts === 0 ? 'Paused open tab' : ctx.attempts === 1 ? 'First time today' : `${ordinal(ctx.attempts)} time today`;
+  const session = ctx.session;
+  if (isOpenEnded(session)) el('sessionValue').textContent = 'When you’re ready';
+  else {
+    const seconds = Math.max(0, Math.ceil((session.endsAt - Date.now()) / 1000));
+    el('sessionValue').textContent = seconds ? `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} left` : 'Finishing…';
+    if (!seconds && !loading) refresh().catch(feedback);
+  }
+  if (ctx.strictnessDelay === null) {
+    el('overrideNote').textContent = 'Locked mode · no temporary passes. You can end the session from the popup.';
     return;
   }
-  if (!target) {
-    els.overrideBtn.hidden = true;
-    return;
-  }
-
-  let remaining = delaySeconds;
-
-  const paint = () => {
-    if (remaining > 0) {
-      els.overrideLabel.textContent = `Let me in for ${overrideMinutes} min · ${remaining}`;
-      remaining -= 1;
-      return;
-    }
-    clearInterval(timer);
-    els.overrideBtn.disabled = false;
-    els.overrideLabel.textContent = `Let me in for ${overrideMinutes} min`;
-  };
-
-  paint();
-  const timer = setInterval(paint, 1000);
-
-  els.overrideBtn.addEventListener('click', async () => {
-    els.overrideBtn.disabled = true;
-    els.overrideLabel.textContent = 'Opening…';
-
-    const res = await send('requestOverride', { siteId });
-    if (!res || res.ok === false) {
-      els.overrideLabel.textContent = 'Could not open';
-      els.overrideNote.textContent = "Doug couldn't lift the block. Try the popup.";
-      return;
-    }
-    // requestOverride awaits rule reconciliation before replying, so the allow
-    // rule is live by now and this navigation won't bounce straight back here.
-    location.replace(target);
-  });
+  const remaining = Math.max(0, Math.ceil((ctx.readyAt - Date.now()) / 1000));
+  el('overrideBtn').disabled = opening || remaining > 0;
+  el('overrideLabel').textContent = remaining > 0 ? `Take a breath · ${remaining}s` : `Let me in for ${ctx.overrideMinutes} min`;
+  el('overrideNote').textContent = remaining > 0 ? 'A moment to decide before opening the site.' : 'Need this site? A temporary pass is here when you need it.';
 }
 
-/* --- Boot ---------------------------------------------------------------- */
-
-async function main() {
-  els.tagNumber.textContent = `Field note · ${new Date()
-    .toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    .toUpperCase()}`;
-
-  // Site name: prefer what the block rule knows, fall back to the URL's host.
-  const fallbackHost = target ? displayHost(target) : null;
-
-  let ctx = null;
+async function refresh() {
+  if (loading) return;
+  loading = true;
   try {
-    ctx = await send('getBlockedContext', { siteId });
-  } catch {
-    /* worker asleep or mid-restart; fall through to defaults */
-  }
-
-  const label = ctx?.site?.label || fallbackHost || 'this site';
-  els.site.textContent = label; // textContent, never innerHTML — see safeExternalUrl
-
-  // Record the hit and use the returned count, so the number shown is the
-  // authoritative one rather than a stale read.
-  const copy = blockedCopy((ctx?.attempts || 0) + 1, ctx?.lastLine);
-  let attempts = (ctx?.attempts || 0) + 1;
-  try {
-    const res = await send('recordAttempt', { siteId, line: copy.line });
-    if (res?.attempts) attempts = res.attempts;
-  } catch {
-    /* non-fatal: the page still works, the count is just optimistic */
-  }
-
-  els.line.textContent = copy.line;
-  els.subline.textContent = copy.subline || '';
-  els.attempts.textContent =
-    attempts <= 1 ? 'first time today' : `${ordinal(attempts)} time today`;
-
-  // A rough day earns a softer, sadder Doug; otherwise he's side-eyeing you.
-  // Both are recoverable moods — neither is a scold.
-  renderDoug(els.doug, attempts >= 8 ? 'bummed' : 'side_eye');
-
-  renderCountdown(ctx?.session?.endsAt);
-  armOverride({
-    delaySeconds: ctx?.strictnessDelay,
-    overrideMinutes: ctx?.overrideMinutes ?? 5,
-  });
+    const next = requireSuccess(await send('getBlockedContext'));
+    context = next;
+    paint();
+  } finally { loading = false; }
 }
 
-els.closeBtn.addEventListener('click', async () => {
-  // window.close() is a no-op for a tab the user navigated to, so close via
-  // the tabs API. chrome.tabs.remove needs no "tabs" permission — that one
-  // only gates reading a tab's url/title.
+el('overrideBtn').addEventListener('click', () => act(el('overrideBtn'), async () => {
+  opening = true;
   try {
-    const tab = await chrome.tabs.getCurrent();
-    if (tab?.id) {
-      await chrome.tabs.remove(tab.id);
-      return;
-    }
-  } catch {
-    /* fall through */
-  }
-  window.close();
-});
+    requireSuccess(await send('requestOverride'));
+    // The worker replies only after Chrome has installed the allow rule.
+    if (target) location.replace(target);
+  } finally { opening = false; }
+}));
 
-main();
+el('closeBtn').addEventListener('click', () => act(el('closeBtn'), async () => {
+  const tab = await chrome.tabs.getCurrent();
+  if (tab?.id !== undefined) await chrome.tabs.remove(tab.id);
+  else window.close();
+}));
+el('retryBtn').addEventListener('click', () => act(el('retryBtn'), refresh));
+el('tagNumber').textContent = `Field note · ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+renderDoug(el('dougMount'), 'chill');
+refresh().catch(feedback);
+watchState(refresh);
+setInterval(paint, 1000);
+setInterval(() => { if (!document.hidden) refresh().catch(feedback); }, 5000);

@@ -11,6 +11,7 @@
 import { renderDoug } from '../shared/doug.js';
 import { describeSchedule, isWithinSchedule } from '../shared/schedule.js';
 import { historyHeadline, timesPhrase } from '../shared/history.js';
+import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState } from '../shared/ui.js';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -61,10 +62,6 @@ const els = {
 let state = null;
 let savedTimer = null;
 
-function send(action, payload = {}) {
-  return chrome.runtime.sendMessage({ action, ...payload });
-}
-
 function flagSaved() {
   els.savedFlag.textContent = 'Saved';
   els.savedFlag.dataset.on = 'true';
@@ -73,9 +70,11 @@ function flagSaved() {
 }
 
 async function save(values) {
-  await send('patchSettings', { values });
-  flagSaved();
-  await refresh();
+  await act(null, async () => {
+    requireSuccess(await send('patchSettings', { values }));
+    flagSaved();
+    await refresh();
+  });
 }
 
 /* --- Schedule ------------------------------------------------------------ */
@@ -91,11 +90,10 @@ function buildDayButtons() {
     // The letters repeat (S/T/S/T), so the accessible name has to be the real
     // day rather than the glyph.
     btn.setAttribute('aria-label', DAY_NAMES[index]);
-    btn.addEventListener('click', () => {
-      const days = new Set(state.settings.schedule.days);
-      days.has(index) ? days.delete(index) : days.add(index);
-      save({ schedule: { ...state.settings.schedule, days: [...days].sort((a, b) => a - b) } });
-    });
+    btn.addEventListener('click', () => act(btn, async () => {
+      requireSuccess(await send('toggleScheduleDay', { day: index }));
+      flagSaved(); await refresh();
+    }));
     els.days.append(btn);
   });
 }
@@ -114,13 +112,14 @@ function renderSchedule(schedule) {
 
   const inside = isWithinSchedule(schedule, new Date());
   const noDays = schedule.days.length === 0;
+  const noWindow = schedule.start === schedule.end;
 
-  els.scheduleSummary.textContent = noDays
+  els.scheduleSummary.textContent = noWindow ? 'Start and end are the same — the schedule will not run.' : noDays
     ? 'No days selected — the schedule will never run.'
     : `${describeSchedule(schedule)} · ${inside ? 'in work hours now' : 'outside work hours now'}`;
 
   els.scheduleSummary.dataset.live = String(inside && !noDays);
-  els.scheduleSummary.dataset.warn = String(noDays);
+  els.scheduleSummary.dataset.warn = String(noDays || noWindow);
 }
 
 /* --- Sites --------------------------------------------------------------- */
@@ -135,7 +134,8 @@ function renderPacks(packs) {
     btn.type = 'button';
     btn.className = 'chip';
     btn.dataset.state = packState;
-    btn.setAttribute('aria-pressed', String(packState === 'all'));
+    btn.setAttribute('aria-pressed', packState === 'partial' ? 'mixed' : String(packState === 'all'));
+    btn.dataset.focusKey = `pack:${pack.id}`;
 
     const label = document.createElement('span');
     label.textContent = pack.label;
@@ -153,12 +153,11 @@ function renderPacks(packs) {
           ? `${present} of ${total} on — click to add the rest`
           : `Click to block ${total} sites`;
 
-    btn.addEventListener('click', async () => {
-      for (const c of els.packChips.children) c.disabled = true;
-      await send('togglePack', { packId: pack.id });
+    btn.addEventListener('click', () => act(els.packChips.children, async () => {
+      requireSuccess(await send('togglePack', { packId: pack.id }));
       flagSaved();
       await refresh();
-    });
+    }));
 
     els.packChips.append(btn);
   }
@@ -214,11 +213,12 @@ function renderSites(sites) {
     remove.textContent = '×';
     remove.setAttribute('aria-label', `Stop blocking ${site.label}`);
     remove.title = `Stop blocking ${site.label}`;
-    remove.addEventListener('click', async () => {
-      await send('removeSite', { siteId: site.id });
+    remove.dataset.focusKey = `site:${site.id}`;
+    remove.addEventListener('click', () => act(remove, async () => {
+      requireSuccess(await send('removeSite', { siteId: site.id }));
       flagSaved();
       await refresh();
-    });
+    }));
 
     li.append(remove);
     els.siteList.append(li);
@@ -288,10 +288,13 @@ function renderHistory(history) {
 /* --- Render -------------------------------------------------------------- */
 
 function render() {
+  const restore = rememberFocus();
   const { settings } = state;
   const name = settings.dino.name;
 
-  renderDoug(els.doug, state.mood);
+  applyTheme(settings.theme);
+  document.getElementById('themeSelect').value = settings.theme;
+  renderDoug(els.doug, state.mood, { name });
   els.mastheadSub.textContent = `${name} is ${state.mood.replace('_', ' ')} — ${state.because}`;
 
   if (document.activeElement !== els.dinoName) els.dinoName.value = name;
@@ -312,6 +315,8 @@ function render() {
   renderSites(settings.sites);
 
   els.versionNote.textContent = `${settings.sites.length} sites · all data local`;
+  document.getElementById('appVersion').textContent = `Focusaurus ${chrome.runtime.getManifest().version}`;
+  restore();
 }
 
 async function refresh() {
@@ -343,13 +348,13 @@ els.overrideMinutes.addEventListener('change', () => {
 });
 
 els.scheduleEnabled.addEventListener('change', () => {
-  save({ schedule: { ...state.settings.schedule, enabled: els.scheduleEnabled.checked } });
+  save({ schedule: { enabled: els.scheduleEnabled.checked } });
 });
 
 for (const [el, key] of [[els.scheduleStart, 'start'], [els.scheduleEnd, 'end']]) {
   el.addEventListener('change', () => {
     if (!el.value) return; // cleared time input — leave the stored value alone
-    save({ schedule: { ...state.settings.schedule, [key]: el.value } });
+    save({ schedule: { [key]: el.value } });
   });
 }
 
@@ -358,6 +363,7 @@ els.addForm.addEventListener('submit', async (e) => {
   els.addError.textContent = '';
   if (!els.siteInput.value.trim()) return;
 
+  await act(els.addForm.querySelector('button'), async () => {
   const res = await send('addSite', { input: els.siteInput.value });
   if (res?.ok) {
     els.siteInput.value = '';
@@ -365,18 +371,20 @@ els.addForm.addEventListener('submit', async (e) => {
     await refresh();
     return;
   }
+  if (['site-limit', 'unsupported-pattern'].includes(res.reason)) requireSuccess(res);
   els.addError.textContent =
     res?.reason === 'duplicate'
       ? 'Already on the list.'
       : "That doesn't look like a site. Try instagram.com, or youtube.com/shorts.";
+  });
 });
 
 // Filter is local-only; no need to disturb the worker.
-els.siteFilter.addEventListener('input', () => renderSites(state.settings.sites));
+els.siteFilter.addEventListener('input', () => { if (state) renderSites(state.settings.sites); });
 
 /* --- Export / import ----------------------------------------------------- */
 
-els.exportBtn.addEventListener('click', async () => {
+els.exportBtn.addEventListener('click', () => act(els.exportBtn, async () => {
   const res = await send('exportSettings');
   if (!res?.ok) return;
 
@@ -386,26 +394,32 @@ els.exportBtn.addEventListener('click', async () => {
   a.href = url;
   a.download = `focusaurus-settings-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
 
   els.dataNote.dataset.tone = 'good';
   els.dataNote.textContent = 'Exported. Keep it somewhere you can find it.';
-});
+}));
 
 els.importBtn.addEventListener('click', () => els.importFile.click());
 
 els.importFile.addEventListener('change', async () => {
   const file = els.importFile.files?.[0];
   if (!file) return;
+  if (file.size > 1_000_000) { feedback(new Error('That file is too large. Use a Focusaurus settings export under 1 MB.')); els.importFile.value = ''; return; }
+
+  await act(els.importBtn, async () => {
 
   const json = await file.text();
   els.importFile.value = ''; // so re-picking the same file fires again
+
+  if (!await confirmAction('Replace your settings?', 'This replaces your site list, work hours, and preferences. Your history stays. Export your current settings first if you want a backup.', 'Replace settings')) return;
 
   const res = await send('importSettings', { json });
   if (!res?.ok) {
     els.dataNote.dataset.tone = 'bad';
     els.dataNote.textContent =
-      res?.reason === 'wrong-format'
+      res?.reason === 'unsupported-pattern' ? 'This backup contains a path Chrome cannot block. Shorten that path before importing.' :
+      res?.reason === 'newer-version' ? 'This backup is from a newer Focusaurus version. Update the extension first.' : res?.reason === 'wrong-format'
         ? "That file isn't a Focusaurus export."
         : "Couldn't read that file — it doesn't look like valid JSON.";
     return;
@@ -418,12 +432,34 @@ els.importFile.addEventListener('change', async () => {
     ? `Imported ${res.siteCount} sites, with fixes: ${res.warnings.join(' ')}`
     : `Imported ${res.siteCount} sites.`;
   flagSaved();
+  });
 });
 
 /* --- Boot ---------------------------------------------------------------- */
 
 buildDayButtons();
-await refresh();
+await refresh().catch(feedback);
+watchState(refresh);
+document.getElementById('themeSelect').addEventListener('change', (e) => save({ theme: e.target.value }));
+
+function confirmAction(title, text, label) {
+  const dialog = document.getElementById('confirmDialog');
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  document.getElementById('confirmBtn').textContent = label;
+  dialog.returnValue = 'cancel';
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+    dialog.showModal();
+  });
+}
+
+document.getElementById('clearHistoryBtn').addEventListener('click', (e) => act(e.currentTarget, async () => {
+  if (!await confirmAction('Clear your history?', 'This deletes recorded attempts and past sessions from this Chrome profile. Your blocked sites, settings, and current session stay.', 'Clear history')) return;
+  requireSuccess(await send('clearHistory'));
+  await refresh();
+  els.dataNote.dataset.tone = 'good'; els.dataNote.textContent = 'History cleared.';
+}));
 
 // The schedule summary says "in work hours now", which goes stale as the day
 // moves. Cheap to keep honest while the tab is open.

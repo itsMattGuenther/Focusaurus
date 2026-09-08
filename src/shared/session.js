@@ -21,17 +21,18 @@ export const OPEN_ENDED_MINUTES = 720;
 const HOURS_THRESHOLD = 100;
 
 export function sessionActive(session, now = Date.now()) {
-  return Boolean(session && session.endsAt > now);
+  return Boolean(session && (session.endsAt > now || (session.endsAt === null && isOpenEnded(session))));
 }
 
 export function isOpenEnded(session) {
-  return Boolean(session && session.plannedMinutes >= OPEN_ENDED_MINUTES);
+  return Boolean(session && session.source !== 'schedule' && session.plannedMinutes >= OPEN_ENDED_MINUTES);
 }
 
 /** Whole minutes left, rounded up. Never 0 while any time remains, so the
  *  badge can't read "0" on a session that's still enforcing. */
 export function minutesRemaining(session, now = Date.now()) {
   if (!sessionActive(session, now)) return 0;
+  if (session.endsAt === null) return Infinity;
   return Math.max(1, Math.ceil((session.endsAt - now) / 60000));
 }
 

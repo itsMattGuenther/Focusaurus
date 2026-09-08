@@ -86,6 +86,15 @@ test('isOpenEnded only trips at the threshold', () => {
   assert.equal(isOpenEnded(null), false);
 });
 
+test('a manual session without a deadline stays active; a scheduled one needs a deadline', () => {
+  const open = { startedAt: NOW, plannedMinutes: OPEN_ENDED_MINUTES, source: 'manual', endsAt: null };
+  const nextMonth = NOW + 30 * 24 * 60 * 60_000;
+  assert.equal(sessionActive(open, nextMonth), true);
+  assert.equal(minutesRemaining(open, nextMonth), Infinity);
+  assert.equal(badgeText(open, nextMonth), '∞');
+  assert.equal(sessionActive({ ...open, source: 'schedule' }, NOW), false);
+});
+
 test('the standard chip durations all render sensibly', () => {
   // The four options the popup actually offers.
   assert.equal(badgeText(session(25, 25), NOW), '25');

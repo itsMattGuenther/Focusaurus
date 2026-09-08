@@ -91,6 +91,15 @@
 
 .portrait__doug { position: relative; }
 
+.portrait::before { content: ''; position: absolute; inset: 10% 0 20%; border: 1px solid var(--rule-strong); border-radius: 50%; opacity: .7; }
+.portrait__caption { display: grid; gap: 6px; text-align: center; margin-top: 20px; color: var(--ink-soft); font-size: 12px; }
+.says__eyebrow { margin: 0 0 20px; }
+.field-footer { display: flex; justify-content: space-between; gap: 20px; padding-top: 20px; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 12px; }
+.text-button { padding: 0; background: none; border: 0; font: inherit; color: var(--moss); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.tag__cell { min-width: 0; }
+.tag { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 560px) { .tag { grid-template-columns: 1fr; }.field-footer { flex-wrap: wrap; }.portrait { max-width: 200px; } }
+
 /* --- What Doug says ------------------------------------------------------ */
 
 .says { min-width: 0; }
