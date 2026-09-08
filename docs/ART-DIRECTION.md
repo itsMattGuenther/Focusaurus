@@ -7,9 +7,11 @@ The user selected a warm illustrated field guide on 2026-09-08. Doug is a friend
 - `assets/art/doug-{chill,focused,locked_in,side_eye,bummed,stoked,asleep}.webp`: seven 800 × 800 RGBA character states, under 200 KB each.
 - `assets/icons/icon{16,32,48,128}.png`: the happy `doug-stoked.webp` artwork, with transparent margins trimmed and the entire figure proportionally rescaled. `npm run icons` uses canvas with high-quality image smoothing. This deterministic rescaling was requested by the user; no new image generation or drawing is involved.
 - `docs/store-assets/`: promotional tiles and screenshots captured from the real extension.
-- `dev/art-source/`: preserved image-generation PNG sources, excluded from the runtime package.
+- `dev/art-source/`: seven reusable PNG sources with real alpha transparency at their original 1254 × 1254 resolution, excluded from the runtime package. The initial unprocessed generations remain in Git history.
 
-The built-in image generation tool created the master illustration and expression edits. No third-party character references were used. Expression edits returned baked checkerboard backgrounds; the user explicitly authorized local cleanup. `dev/prepare-art.py` preserves source files and uses a reference-guided graph-cut mask, then compresses the result as WebP. It requires Pillow, NumPy, SciPy and opencv-python-headless. Those are art-authoring tools only; normal build/install/test paths need no Python.
+The built-in image generation tool created the master illustration and expression edits. No third-party character references were used. Expression edits returned baked checkerboard backgrounds; the user explicitly authorized local cleanup. The cleanup now saves true transparency into the source PNGs themselves, as well as the production WebP files. It preserves Doug's original colors, expression and source resolution.
+
+`python dev/prepare-art.py` exports the transparent sources to WebP and rejects opaque backgrounds. It requires Pillow. For a newly generated opaque source, `python dev/prepare-art.py --clean-backgrounds` applies a reference-guided graph-cut mask and replaces that source with a transparent PNG before export; this optional cleanup also requires NumPy, SciPy and opencv-python-headless. The existing transparent master supplies the silhouette reference. Those are art-authoring tools only; normal build/install/test paths need no Python.
 
 `npm run doug` regenerates the visual review sheet. Review every mood on paper and lamplight, at full size and 118px, before replacing an asset. Motion is limited to subtle breathing and completely disabled by reduced-motion preference. Never squash the entire face to simulate a blink on a painted image.
 
