@@ -29,7 +29,8 @@ or distribution checks. These were the material release findings:
 | P1 | Long paths exceed Chrome's compiled-regex memory limit. | Chrome validates custom/imported patterns before saving, including while idle. Rejected imports preserve the working list. |
 | P1 | Open-ended sessions expire after 12 hours; paths mishandle ports and normalization. | Null-deadline manual sessions, explicit schedule deadlines, canonical URL matching and path-boundary tests. |
 | P1 | Duration selection, keyboard focus, narrow layouts and motion need verification. | Accessible selection/status, focus restoration, both-theme Axe checks, 360px reflow and reduced motion. |
-| P1 | Dinosaur/icons lack a coherent, finished identity. | Seven original illustrated Doug states, transparent WebP assets, new profile mark and 16/32/48/128px icons, refreshed surfaces and store artwork. |
+| P1 | Dinosaur/icons lack a coherent, finished identity. | Seven original illustrated Doug states, transparent WebP assets and 16/32/48/128px icons rescaled from happy Doug, refreshed surfaces and store artwork. |
+| P1 | The real toolbar window collapses because its width is capped by its initial viewport. | Explicit 420px root width, normal word wrapping and a regression exercising Chrome's actual action popup in both themes. |
 | P1 | Local-data claim conflicts with sync; no policy or history deletion. | Local settings, accurate bundled/public-ready policy, 90-day maintenance and clear-history control preserving the session/settings. |
 | P1 | No release package, browser harness, CI or submission materials. | Pinned tools, package allowlist/byte verification/checksum, browser suite, configured GitHub workflow, listing copy/images and complete font licenses. |
 | P2 | Historical docs promise unsupported features and contain stale assumptions. | Rewritten product scope, architecture, art provenance, roadmap and store materials. |
@@ -49,15 +50,15 @@ used; the user's normal browser profile was not modified.
 | --- | --- |
 | `npm run check` | Pass: runtime syntax, local references, version alignment, required assets and static remote-code/CSP checks. |
 | `npm test` | **194 passed**, no failures or skips. Matching, rules, redirects, schedules, sessions, settings, history, moods, contrast, art and queue behavior. |
-| `npm run test:browser` | **17 passed**, including full browser restart and delayed-action keyboard focus restoration. |
-| `FOCUSAURUS_EXTENSION_PATH=dist/extension npm run test:browser` | **17 passed** against production package contents. |
-| Accessibility subset | Zero Axe WCAG 2/2.1 A/AA violations across popup, welcome, settings, blocked and privacy pages in both themes. Measured 360px reflow and reduced motion. Automated coverage is not accessibility certification. |
+| `npm run test:browser` | **18 passed**, including actual toolbar sizing, full browser restart and delayed-action keyboard focus restoration. |
+| `FOCUSAURUS_EXTENSION_PATH=dist/extension npm run test:browser` | **18 passed** against production package contents. |
+| Accessibility subset | Zero Axe WCAG 2/2.1 A/AA violations across popup, welcome, settings, blocked and privacy pages in both themes. Full-tab pages reflow at 360px; the toolbar keeps its 420px content width. Reduced motion is checked on both. Automated coverage is not accessibility certification. |
 | Visual review | Reviewed illustrated mood assets, actual light/dark screens, narrow settings, toolbar mark and store graphics. ART-DIRECTION.md records sources and prompts. |
-| `npm run build` | Pass: 48 runtime files, allowlisted contents, each decompressed byte checked; ZIP and SHA-256 generated. |
+| `npm run build` | Pass: 47 runtime files, allowlisted contents, each decompressed byte checked; ZIP and SHA-256 generated. |
 | Artifact repeatability | A second build produced the same archive checksum. The current archive size/contents are in `package-manifest.json`; its hash is in the adjacent `.sha256` file. |
 | Standalone privacy page | Loaded successfully in Chromium with no missing resources or links back into the extension. |
 | Dependency audit | `npm audit`: zero reported vulnerabilities at verification time. No third-party runtime dependencies. |
-| CI | GitHub Actions runs checks and source/package browser suites on Linux. Current results are attached to [release PR #3](https://github.com/matthewguenther/Focusaurus/pull/3); merging waits for successful checks. |
+| CI | GitHub Actions runs checks and source/package browser suites on Linux. Current results are in [Release checks](https://github.com/matthewguenther/Focusaurus/actions/workflows/release-checks.yml); merging waits for successful checks. |
 
 Browser coverage includes fresh setup/all packs, concurrent writes, actual DNR
 redirects/onward navigation, worker-enforced pauses, locked release and message

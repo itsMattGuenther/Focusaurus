@@ -46,9 +46,9 @@ a warm illustrated field guide: tactile green and oat gouache, clay plates,
 organic contours, calm typography, and light-touch motion.
 
 Every expression is accompanied by an explanation. Color and mood cannot be
-the only way to understand state. The toolbar uses a simple recognizable
-profile mark; the full illustration belongs in the popup, welcome and blocked
-pages. Both themes preserve Doug’s painted colors.
+the only way to understand state. The toolbar uses a proportionally rescaled
+happy Doug, matching the illustrations in the popup, welcome and blocked pages.
+Both themes preserve Doug’s painted colors.
 
 ## What to learn after launch
 
