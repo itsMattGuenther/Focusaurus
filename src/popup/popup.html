@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Focusaurus</title>
   <link rel="stylesheet" href="../shared/tokens.css">
   <link rel="stylesheet" href="../shared/doug.css">
@@ -9,13 +10,15 @@
 </head>
 <body>
   <header class="masthead">
-    <span class="masthead__mark">Focusaurus</span>
+    <span class="masthead__mark"><img src="../../assets/icons/mark.svg" width="24" height="24" alt="">Focusaurus</span>
     <span class="masthead__right">
       <span class="label" id="statusChip">—</span>
       <button type="button" class="iconbtn" id="settingsBtn"
-              title="Settings" aria-label="Open settings">&#9881;</button>
+              title="Settings" aria-label="Open settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m10 3-.7 2.2-2 .9-2.1-.5-2 3.4 1.5 1.7v2.6L3.2 15l2 3.4 2.1-.5 2 .9L10 21h4l.7-2.2 2-.9 2.1.5 2-3.4-1.5-1.7v-2.6L20.8 9l-2-3.4-2.1.5-2-.9L14 3Z"/><circle cx="12" cy="12" r="3"/></svg></button>
     </span>
   </header>
+  <main>
+  <p class="app-error" id="appError" role="alert" hidden></p>
 
   <!-- Doug and his current read on the day. The mood IS the interface: you
        should be able to close the popup after this row and know where you
@@ -26,6 +29,7 @@
       <div id="dougMount"></div>
     </figure>
     <div class="hero__text">
+      <p class="label hero__eyebrow" id="dinoLabel">Your focus companion</p>
       <p class="hero__says display" id="moodLine">…</p>
       <p class="hero__because" id="moodBecause"></p>
     </div>
@@ -37,14 +41,15 @@
 
     <div id="sessionIdle">
       <div class="chips" role="group" aria-label="Session length">
-        <button type="button" class="chip" data-minutes="25">25m</button>
-        <button type="button" class="chip chip--on" data-minutes="50">50m</button>
-        <button type="button" class="chip" data-minutes="90">90m</button>
-        <button type="button" class="chip" data-minutes="720">Open</button>
+        <button type="button" class="chip chip--on" data-minutes="25" aria-pressed="true">25 min</button>
+        <button type="button" class="chip" data-minutes="50" aria-pressed="false">50 min</button>
+        <button type="button" class="chip" data-minutes="90" aria-pressed="false">90 min</button>
+        <button type="button" class="chip" data-minutes="720" aria-pressed="false" aria-label="Open-ended session">Open</button>
       </div>
       <button type="button" class="btn btn--primary btn--block" id="startBtn">
         Start focusing
       </button>
+      <p class="panel__note" id="setupHint">Choose a category or add a site below to begin.</p>
     </div>
 
     <div id="sessionActive" hidden>
@@ -87,7 +92,7 @@
              autocomplete="off" spellcheck="false" aria-label="Site to block">
       <button type="submit" class="btn btn--quiet">Add</button>
     </form>
-    <p class="add__error" id="addError"></p>
+    <p class="add__error" id="addError" role="status"></p>
 
     <p class="sites__empty" id="sitesEmpty">
       Nothing blocked yet — pick a category above, or type a site.
@@ -98,6 +103,8 @@
       <ul class="sites" id="siteList"></ul>
     </div>
   </section>
+  </main>
+  <footer class="popup-footer"><span>A little room to focus.</span><a href="../privacy/privacy.html" target="_blank">Local &amp; private</a></footer>
 
   <script type="module" src="popup.js"></script>
 </body>

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_SETTINGS,
   OVERRIDE_DELAYS,
+  SCHEMA_VERSION,
   sanitizeSettings,
 } from '../src/background/storage.js';
 
@@ -88,6 +89,14 @@ test('an empty day list is preserved, not silently repaired', () => {
   assert.deepEqual(settings.schedule.days, []);
 });
 
+test('a malformed enabled flag cannot turn on work hours', () => {
+  for (const enabled of ['false', 'true', 1, {}, []]) {
+    const { settings, warnings } = sanitizeSettings({ ...GOOD, schedule: { ...GOOD.schedule, enabled } });
+    assert.equal(settings.schedule.enabled, false);
+    assert.ok(warnings.some((warning) => warning.includes('turned off')));
+  }
+});
+
 test('the dino name is trimmed, capped, and never blank', () => {
   assert.equal(sanitizeSettings({ ...GOOD, dino: { name: '  Gary  ' } }).settings.dino.name, 'Gary');
   assert.equal(sanitizeSettings({ ...GOOD, dino: { name: '   ' } }).settings.dino.name, 'Doug');
@@ -139,13 +148,14 @@ test('site records come out in the shape the rule compiler expects', () => {
   assert.equal(site.budgetMinutes, null);
 });
 
-test('mode and budget survive for future budget sites', () => {
-  const { settings } = sanitizeSettings({
+test('unsupported budgets become explicit session blocks with an import warning', () => {
+  const { settings, warnings } = sanitizeSettings({
     ...GOOD,
     sites: [{ label: 'youtube.com', mode: 'budget', budgetMinutes: 15.4 }],
   });
-  assert.equal(settings.sites[0].mode, 'budget');
-  assert.equal(settings.sites[0].budgetMinutes, 15);
+  assert.equal(settings.sites[0].mode, 'block');
+  assert.equal(settings.sites[0].budgetMinutes, null);
+  assert.ok(warnings.some((w) => w.includes('not supported')));
 });
 
 test('an unrecognized mode falls back to block', () => {
@@ -165,11 +175,26 @@ test('unknown top-level keys are discarded', () => {
   assert.equal(settings.evil, undefined);
   assert.deepEqual(
     Object.keys(settings).sort(),
-    ['dino', 'onboarded', 'overrideMinutes', 'schedule', 'schemaVersion', 'sites', 'strictness'],
+    ['dino', 'onboarded', 'overrideMinutes', 'schedule', 'schemaVersion', 'sites', 'strictness', 'theme'],
   );
 });
 
 test('output always carries the current schema version', () => {
-  assert.equal(sanitizeSettings({ ...GOOD, schemaVersion: 99 }).settings.schemaVersion, 1);
-  assert.equal(sanitizeSettings({}).settings.schemaVersion, 1);
+  assert.equal(sanitizeSettings({ ...GOOD, schemaVersion: 99 }).settings.schemaVersion, SCHEMA_VERSION);
+  assert.equal(sanitizeSettings({}).settings.schemaVersion, SCHEMA_VERSION);
+});
+
+test('duplicate and prototype-like identifiers cannot alias site history or overrides', () => {
+  const { settings, warnings } = sanitizeSettings({ sites: [
+    { id: 'same', label: 'a.example' }, { id: 'same', label: 'b.example' },
+    { id: '__proto__', label: 'c.example' }, { id: 'constructor', label: 'd.example' },
+  ] });
+  assert.equal(new Set(settings.sites.map((s) => s.id)).size, 4);
+  assert.ok(settings.sites.every((s) => !['__proto__', 'constructor'].includes(s.id)));
+  assert.equal(warnings.length, 3);
+});
+
+test('null budget remains null across repeated saves', () => {
+  const { settings } = sanitizeSettings({ sites: [{ label: 'a.example', budgetMinutes: null }] });
+  assert.equal(sanitizeSettings(settings).settings.sites[0].budgetMinutes, null);
 });

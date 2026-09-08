@@ -11,6 +11,7 @@ import { renderDoug, MOODS } from '../shared/doug.js';
 import { moodCopy } from '../shared/copy.js';
 import { isOpenEnded } from '../shared/session.js';
 import { historyGlance } from '../shared/history.js';
+import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState } from '../shared/ui.js';
 
 const els = {
   statusChip: document.getElementById('statusChip'),
@@ -39,12 +40,9 @@ const els = {
   packChips: document.getElementById('packChips'),
 };
 
-let selectedMinutes = 50;
+let selectedMinutes = 25;
 let countdownTimer = null;
-
-function send(action, payload = {}) {
-  return chrome.runtime.sendMessage({ action, ...payload });
-}
+let lastMood = null;
 
 /* --- Render -------------------------------------------------------------- */
 
@@ -84,7 +82,7 @@ function renderSession(session) {
     const ms = session.endsAt - Date.now();
     if (ms <= 0) {
       clearInterval(countdownTimer);
-      refresh(); // the worker's alarm has ended it; pull fresh state
+      refresh().catch(feedback); // Pull authoritative state after the deadline.
       return;
     }
     els.countdown.textContent = clock(ms);
@@ -112,10 +110,11 @@ function renderSites(sites) {
     remove.textContent = '×';
     remove.title = `Stop blocking ${site.label}`;
     remove.setAttribute('aria-label', `Stop blocking ${site.label}`);
-    remove.addEventListener('click', async () => {
-      await send('removeSite', { siteId: site.id });
-      refresh();
-    });
+    remove.dataset.focusKey = `site:${site.id}`;
+    remove.addEventListener('click', () => act(remove, async () => {
+      requireSuccess(await send('removeSite', { siteId: site.id }));
+      await refresh();
+    }));
 
     li.append(name);
     if (site.pack && site.pack !== 'custom') {
@@ -150,7 +149,8 @@ function renderPacks(packs) {
     btn.className = 'chip chip--pack';
     btn.dataset.state = state;
     // aria-pressed, because these are toggles rather than navigation.
-    btn.setAttribute('aria-pressed', String(state === 'all'));
+    btn.setAttribute('aria-pressed', state === 'partial' ? 'mixed' : String(state === 'all'));
+    btn.dataset.focusKey = `pack:${pack.id}`;
 
     const label = document.createElement('span');
     label.textContent = pack.label;
@@ -172,21 +172,22 @@ function renderPacks(packs) {
           ? `${pack.blurb} — ${present} of ${total} on, click to add the rest`
           : `${pack.blurb} — click to block ${total} sites`;
 
-    btn.addEventListener('click', async () => {
-      // Disable the whole group: a pack write is several storage round trips,
-      // and a second click mid-flight could act on a stale status.
-      for (const c of els.packChips.children) c.disabled = true;
-      await send('togglePack', { packId: pack.id });
+    btn.addEventListener('click', () => act(els.packChips.children, async () => {
+      requireSuccess(await send('togglePack', { packId: pack.id }));
       await refresh();
-    });
+    }));
 
     els.packChips.append(btn);
   }
 }
 
 function render(state) {
-  renderDoug(els.doug, state.mood);
-  els.moodLine.textContent = moodCopy(state.mood);
+  const restore = rememberFocus();
+  applyTheme(state.settings.theme);
+  renderDoug(els.doug, state.mood, { name: state.settings.dino.name });
+  if (lastMood !== state.mood) els.moodLine.textContent = moodCopy(state.mood);
+  lastMood = state.mood;
+  document.getElementById('dinoLabel').textContent = `${state.settings.dino.name} · your focus companion`;
   els.moodBecause.textContent = state.because || MOODS[state.mood]?.because || '';
 
   renderSession(state.session);
@@ -195,6 +196,10 @@ function render(state) {
 
   renderPacks(state.packs);
   renderSites(state.settings.sites);
+  els.startBtn.disabled = state.settings.sites.length === 0;
+  els.startBtn.dataset.stateDisabled = String(els.startBtn.disabled);
+  document.getElementById('setupHint').hidden = state.settings.sites.length > 0;
+  restore();
 }
 
 async function refresh() {
@@ -217,24 +222,22 @@ for (const chip of document.querySelectorAll('.chip[data-minutes]')) {
   chip.addEventListener('click', () => {
     document
       .querySelectorAll('.chip[data-minutes]')
-      .forEach((c) => c.classList.toggle('chip--on', c === chip));
+      .forEach((c) => { c.classList.toggle('chip--on', c === chip); c.setAttribute('aria-pressed', String(c === chip)); });
     selectedMinutes = Number(chip.dataset.minutes);
   });
 }
 
-els.startBtn.addEventListener('click', async () => {
-  els.startBtn.disabled = true;
-  await send('startSession', { minutes: selectedMinutes });
-  els.startBtn.disabled = false;
-  refresh();
-});
+els.startBtn.addEventListener('click', () => act(els.startBtn, async () => {
+  requireSuccess(await send('startSession', { minutes: selectedMinutes }));
+  await refresh();
+  els.endBtn.focus();
+}));
 
-els.endBtn.addEventListener('click', async () => {
-  els.endBtn.disabled = true;
-  await send('endSession');
-  els.endBtn.disabled = false;
-  refresh();
-});
+els.endBtn.addEventListener('click', () => act(els.endBtn, async () => {
+  requireSuccess(await send('endSession'));
+  await refresh();
+  els.startBtn.focus();
+}));
 
 els.addForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -243,17 +246,21 @@ els.addForm.addEventListener('submit', async (e) => {
   const input = els.siteInput.value;
   if (!input.trim()) return;
 
+  await act(els.addForm.querySelector('button'), async () => {
   const res = await send('addSite', { input });
   if (res?.ok) {
     els.siteInput.value = '';
-    refresh();
+    await refresh();
     return;
   }
 
+  if (['site-limit', 'unsupported-pattern'].includes(res.reason)) requireSuccess(res);
   els.addError.textContent =
     res?.reason === 'duplicate'
       ? 'Already on the list.'
       : "Doesn't look like a site — try instagram.com";
+  });
 });
 
-refresh();
+refresh().catch(feedback);
+watchState(refresh);

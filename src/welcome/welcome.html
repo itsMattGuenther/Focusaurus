@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Meet your focus companion · Focusaurus</title><link rel="stylesheet" href="../shared/tokens.css"><link rel="stylesheet" href="../shared/doug.css"><link rel="stylesheet" href="welcome.css"></head>
+<body>
+  <div class="welcome">
+    <header class="welcome__header"><span class="wordmark"><img src="../../assets/icons/mark.svg" width="30" height="30" alt="">Focusaurus</span><span class="label">A field guide to a quieter browser</span></header>
+    <main class="welcome__stage">
+      <section class="welcome__intro">
+        <p class="label">Meet your focus companion</p>
+        <h1>A little less scrolling.<br>A little more <em>you.</em></h1>
+        <p>Make room for the thing you meant to do. Doug keeps your distracting sites on pause while you focus.</p>
+        <figure><div id="dougMount"></div><figcaption><span class="label" id="dinoName">Doug, Focusaurus</span><br>Very old dinosaur. Very much on your side.</figcaption></figure>
+      </section>
+      <section class="setup" aria-labelledby="setupTitle">
+        <p class="label">Your first field note</p>
+        <h2 id="setupTitle">What needs a little space?</h2>
+        <p>Choose a category, add your own site, or combine both. Matching open tabs will pause too. You can change your list anytime.</p>
+        <p class="app-error" id="appError" role="alert" hidden></p>
+        <div id="packChips" class="packs" role="group" aria-label="Categories to block"></div>
+        <form id="addForm" class="add"><label for="siteInput" class="visually-hidden">Site to block</label><input class="field" id="siteInput" placeholder="instagram.com" autocomplete="off" spellcheck="false" maxlength="500"><button class="btn btn--quiet" type="submit">Add</button></form>
+        <p id="addError" role="status" class="setup__note"></p>
+        <p id="siteCount" class="setup__note" role="status">Choose at least one site to get started.</p>
+        <button type="button" class="btn btn--primary setup__start" id="startBtn" disabled>Start my first 25 minutes <span aria-hidden="true">↗</span></button>
+        <p id="started" class="setup__success" role="status" hidden>You’re focusing. Open a fresh tab for your work. Doug is here if you need him.</p>
+        <a class="setup__settings" href="../options/options.html">Review sites &amp; settings</a>
+        <div class="setup__privacy"><span class="label">Yours, and only yours</span><p>No account. No analytics. Settings and history stay in this Chrome profile. <a href="../privacy/privacy.html">How privacy works</a></p></div>
+      </section>
+    </main>
+    <footer class="welcome__footer"><span>Pin Focusaurus from Chrome’s Extensions menu to keep Doug close.</span><span>One small start is enough.</span></footer>
+  </div>
+  <script type="module" src="welcome.js"></script>
+</body></html>
