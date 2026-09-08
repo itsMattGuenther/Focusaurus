@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Focusaurus",
-  "version": "0.1.0",
-  "description": "Block distracting sites during focus sessions. Doug the dinosaur notices when you try anyway.",
+  "version": "1.0.0",
+  "minimum_chrome_version": "120",
+  "description": "Make room for focus. Block distracting sites, set work hours, and find your way back with Doug, your dinosaur companion.",
 
   "permissions": [
     "declarativeNetRequestWithHostAccess",
     "storage",
-    "alarms"
+    "alarms",
+    "webNavigation"
   ],
 
   "host_permissions": [
@@ -29,6 +31,7 @@
     "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
       "48": "assets/icons/icon48.png",
       "128": "assets/icons/icon128.png"
     }

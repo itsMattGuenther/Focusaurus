@@ -19,3 +19,9 @@ dev/doug-sheet.html
 Thumbs.db
 desktop.ini
 *.log
+
+# Browser test output and local visual review captures
+test-results/
+playwright-report/
+docs/review/
+__pycache__/

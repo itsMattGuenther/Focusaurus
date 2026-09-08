@@ -10,6 +10,7 @@
 </head>
 <body>
   <div class="page">
+    <p class="app-error" id="appError" role="alert" hidden></p>
     <header class="masthead">
       <figure class="masthead__portrait">
         <div id="dougMount"></div>
@@ -21,6 +22,7 @@
       <p class="masthead__saved" id="savedFlag" role="status" aria-live="polite"></p>
     </header>
 
+    <main>
     <!-- ── Doug ─────────────────────────────────────────────────────────── -->
     <section class="card">
       <h2 class="card__title">Your dinosaur</h2>
@@ -31,14 +33,18 @@
         <input type="text" id="dinoName" class="field field--short" maxlength="24"
                autocomplete="off" spellcheck="false">
       </div>
+      <div class="row">
+        <label class="row__label" for="themeSelect">Appearance</label>
+        <select id="themeSelect" class="field field--short"><option value="system">Match your device</option><option value="light">Daylight</option><option value="dark">Lamplight</option></select>
+      </div>
     </section>
 
     <!-- ── This week ────────────────────────────────────────────────────── -->
     <section class="card" aria-labelledby="historyTitle">
       <h2 class="card__title" id="historyTitle">This week</h2>
       <p class="card__hint">
-        The last seven days of the reflex, counted. Time spent comes later —
-        attempts are the number that actually names the habit.
+        A small field note on the last seven days. These are visits to blocked
+        sites during focus sessions, not time spent browsing.
       </p>
 
       <p class="history__total">
@@ -83,7 +89,7 @@
           <input type="radio" name="strictness" value="locked">
           <span class="choice__body">
             <span class="choice__name">Locked</span>
-            <span class="choice__desc">No way through until the session ends</span>
+            <span class="choice__desc">No temporary passes. You can still end the session from the popup.</span>
           </span>
         </label>
       </fieldset>
@@ -100,7 +106,8 @@
       <h2 class="card__title">Work hours</h2>
       <p class="card__hint">
         Focus mode turns itself on during these hours, so there's no decision to
-        make. End a session by hand and Doug won't restart it until the next day.
+        make. End a session by hand and Doug waits until the next work window.
+        Uses this device’s local time. Changes can take up to a minute.
       </p>
 
       <label class="toggle">
@@ -127,7 +134,7 @@
     </section>
 
     <!-- ── Sites ────────────────────────────────────────────────────────── -->
-    <section class="card">
+    <section class="card" id="sites">
       <h2 class="card__title">
         Blocked sites <span class="card__count" id="siteCount"></span>
       </h2>
@@ -139,7 +146,7 @@
                autocomplete="off" spellcheck="false" aria-label="Site to block">
         <button type="submit" class="btn btn--quiet">Add</button>
       </form>
-      <p class="add__error" id="addError"></p>
+    <p class="add__error" id="addError" role="status"></p>
 
       <input type="search" class="field field--search" id="siteFilter"
              placeholder="Filter…" aria-label="Filter blocked sites">
@@ -152,21 +159,30 @@
     <section class="card">
       <h2 class="card__title">Your data</h2>
       <p class="card__hint">
-        Everything lives on this machine. No account, no server, nothing leaves
-        the browser. Settings sync between your own Chrome profiles; usage
-        history stays local.
+        Settings and history stay in this Chrome profile. No accounts, analytics,
+        or automatic sync. History is kept for up to 90 days. You can export
+        settings yourself or clear your history whenever you like.
       </p>
 
       <div class="actions">
         <button type="button" class="btn btn--quiet" id="exportBtn">Export settings</button>
         <button type="button" class="btn btn--quiet" id="importBtn">Import settings…</button>
+        <button type="button" class="btn btn--quiet" id="clearHistoryBtn">Clear history…</button>
         <input type="file" id="importFile" accept="application/json,.json" hidden>
       </div>
-      <p class="data__note" id="dataNote"></p>
+      <p class="data__note" id="dataNote" role="status"></p>
+      <p class="card__hint"><a href="../privacy/privacy.html">Read the privacy policy</a> · <a href="../welcome/welcome.html">Getting started</a></p>
     </section>
+    </main>
+
+    <dialog id="confirmDialog" aria-labelledby="confirmTitle">
+      <h2 class="card__title" id="confirmTitle">Replace your settings?</h2>
+      <p id="confirmText"></p>
+      <form method="dialog" class="actions"><button class="btn btn--quiet" value="cancel" autofocus>Cancel</button><button class="btn btn--primary" value="confirm" id="confirmBtn">Continue</button></form>
+    </dialog>
 
     <footer class="colophon">
-      <span>Focusaurus v0.1</span>
+      <span id="appVersion">Focusaurus</span>
       <span id="versionNote"></span>
     </footer>
   </div>

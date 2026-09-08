@@ -29,6 +29,11 @@
 
 .masthead__portrait { margin: 0; }
 
+dialog { max-width: min(480px, calc(100vw - 32px)); color: var(--ink); background: var(--paper-raised); border: 1px solid var(--rule-strong); border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-lg); }
+dialog::backdrop { background: rgba(20, 18, 14, .5); }
+dialog p { font-size: var(--text-sm); color: var(--ink-soft); }
+@media (max-width: 440px) { .page { padding: 24px 16px 48px; }.masthead { grid-template-columns: 52px 1fr; }.masthead__saved { grid-column: 2; }.masthead__title { font-size: 30px; }.card { padding: 20px; }.day { min-width: 28px; }.days { gap: 4px; }.row__label { min-width: 64px; } }
+
 .masthead__title {
   margin: 0;
   font-family: var(--font-display);
