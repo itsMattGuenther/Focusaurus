@@ -1,11 +1,11 @@
 # Doug · art direction and provenance
 
-The user selected a warm illustrated field guide on 2026-09-08. Doug is a friendly, understated coworker: moss-green gouache, oat muzzle/belly, clay plates, expressive ink eyes, and an organic dinosaur silhouette. The former geometric SVG figure is replaced on every surface. The full figure remains painted in both themes; the simplified profile mark preserves recognition at toolbar sizes.
+The user selected a warm illustrated field guide on 2026-09-08. Doug is a friendly, understated coworker: moss-green gouache, oat muzzle/belly, clay plates, expressive ink eyes, and an organic dinosaur silhouette. The former geometric SVG figure is replaced on every surface. The full figure remains painted in both themes. Following visual review, toolbar and store icons use the same happy Doug artwork, and the welcome illustration sits over a soft glow with no outlined circle.
 
 ## Delivered assets
 
 - `assets/art/doug-{chill,focused,locked_in,side_eye,bummed,stoked,asleep}.webp`: seven 800 × 800 RGBA character states, under 200 KB each.
-- `assets/icons/mark.svg`: original code-authored simplified profile; generated PNGs at 16, 32, 48 and 128 pixels.
+- `assets/icons/icon{16,32,48,128}.png`: the happy `doug-stoked.webp` artwork, with transparent margins trimmed and the entire figure proportionally rescaled. `npm run icons` uses canvas with high-quality image smoothing. This deterministic rescaling was requested by the user; no new image generation or drawing is involved.
 - `docs/store-assets/`: promotional tiles and screenshots captured from the real extension.
 - `dev/art-source/`: preserved image-generation PNG sources, excluded from the runtime package.
 

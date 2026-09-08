@@ -25,7 +25,7 @@ try {
   await blocked.locator('#attemptsValue').filter({ hasText: 'First time today' }).waitFor();
   await blocked.screenshot({ path: `${out}/blocked-light.png`, animations: 'disabled' });
   await page.reload(); await page.locator('#statusChip').filter({ hasText: 'Focusing' }).waitFor();
-  await page.setViewportSize({ width: 396, height: 800 });
+  await page.setViewportSize({ width: 420, height: 800 });
   await page.screenshot({ path: `${out}/popup-light.png`, fullPage: true, animations: 'disabled' });
   const options = await context.newPage();
   await options.goto(url('options/options.html')); await options.locator('#appVersion').filter({ hasText: '1.0.0' }).waitFor();

@@ -7,7 +7,7 @@ h1 { font-family: var(--font-display); font-size: clamp(36px, 4.4vw, 53px); line
 h1 em { color: var(--moss); font-weight: 500; }
 .welcome__intro > p:not(.label) { color: var(--ink-soft); max-width: 40ch; }
 figure { width: 260px; max-width: 100%; margin: 16px auto 0; position: relative; }
-figure::before { content: ''; position: absolute; width: 84%; height: 80%; border: 1px solid var(--rule-strong); border-radius: 50%; top: 10%; left: 10%; z-index: -1; background: var(--moss-wash); opacity: .55; }
+figure::before { content: ''; position: absolute; inset: -8% -14% 8%; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 52% 48%, color-mix(in srgb, var(--moss) 18%, transparent), transparent 68%); filter: blur(20px); }
 figcaption { text-align: center; font-size: 12px; color: var(--ink-soft); margin-top: 12px; }
 .setup { padding: 28px; border: 1px solid var(--rule-strong); border-radius: 16px; background: var(--paper-raised); box-shadow: var(--shadow-md); }
 .setup h2 { font-family: var(--font-display); font-size: 28px; font-weight: 500; line-height: 1.2; margin: 12px 0; }
