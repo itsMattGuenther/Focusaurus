@@ -234,7 +234,7 @@ test('keyboard category focus survives updates and selection is announced', asyn
   await expect(e.popup.locator('#addError')).toHaveAttribute('role', 'status');
 });
 
-test('all surfaces pass automated accessibility in both themes and reflow at 360px', async ({ extension: e }) => {
+test('all surfaces pass accessibility in both themes; pages reflow and popup keeps its toolbar width', async ({ extension: e }) => {
   const added = await e.send('addSite', { input: 'example.com' });
   await e.send('startSession', { minutes: 25 });
   const paths = ['popup/popup.html', 'welcome/welcome.html', 'options/options.html', 'privacy/privacy.html',
@@ -249,7 +249,8 @@ test('all surfaces pass automated accessibility in both themes and reflow at 360
       if (!path.startsWith('privacy')) await expect(page.locator('.doug')).toBeVisible();
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(results.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.target) })), `${theme} ${path}`).toEqual([]);
-      await page.setViewportSize({ width: 360, height: 800 });
+      // Chrome's toolbar popup has a fixed intrinsic width; full-tab pages reflow.
+      await page.setViewportSize({ width: path.startsWith('popup') ? 420 : 360, height: 800 });
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const layout = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth,
         overflow: [...document.querySelectorAll('body *')].filter((el) => el.getBoundingClientRect().right > innerWidth + 1).map((el) => `${el.tagName}.${el.className}: ${el.getBoundingClientRect().right}`) }));
@@ -258,6 +259,27 @@ test('all surfaces pass automated accessibility in both themes and reflow at 360
       await page.close();
     }
   }
+});
+
+test('the actual toolbar popup expands to fit its content in both themes', async ({ extension: e }) => {
+  await e.worker.evaluate(() => chrome.action.openPopup());
+  for (const theme of ['light', 'dark']) {
+    await e.send('patchSettings', { values: { theme } });
+    // This is Chrome's action window, not a tab opened at the popup URL with
+    // a prescribed Playwright viewport. It reproduces Chrome's auto-sizing.
+    await expect.poll(() => e.popup.evaluate((theme) => {
+      const view = chrome.extension.getViews({ type: 'popup' })[0];
+      if (!view?.document.querySelector('#moodLine')) return false;
+      const doc = view.document;
+      const chips = [...doc.querySelectorAll('[data-minutes]')];
+      return doc.documentElement.dataset.theme === theme && doc.fonts.status === 'loaded' &&
+        view.innerWidth >= 420 && view.innerWidth <= 460 && view.innerHeight <= 600 &&
+        doc.body.getBoundingClientRect().width === 420 && doc.documentElement.scrollWidth <= view.innerWidth &&
+        doc.querySelector('.hero__text').getBoundingClientRect().width >= 200 &&
+        chips.length === 4 && new Set(chips.map((chip) => chip.offsetTop)).size === 1;
+    }, theme)).toBe(true);
+  }
+  await e.popup.evaluate(() => chrome.extension.getViews({ type: 'popup' }).forEach((view) => view.close()));
 });
 
 test('already-open tabs pause without adding attempts, and in-page routes are blocked', async ({ extension: e }) => {
