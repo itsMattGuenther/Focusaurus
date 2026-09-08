@@ -207,10 +207,24 @@ test('clear history confirms in the UI, preserves settings and the current sessi
 });
 
 test('keyboard category focus survives updates and selection is announced', async ({ extension: e }) => {
+  // A slow reply gives Chrome time to blur the disabled category button.
+  // Exercise that timing on fast local machines as well as hosted Linux CI.
+  await e.popup.evaluate(() => {
+    const original = chrome.runtime.sendMessage.bind(chrome.runtime);
+    chrome.runtime.sendMessage = async (message) => {
+      if (message.action === 'togglePack') await new Promise((resolve) => setTimeout(resolve, 250));
+      return original(message);
+    };
+  });
   const pack = e.popup.locator('#packChips button').first();
   await pack.focus(); await e.popup.keyboard.press('Space');
   await expect(pack).toHaveAttribute('aria-pressed', 'true');
   await expect(pack).toBeFocused();
+  await e.popup.keyboard.press('Space');
+  await expect(pack).toBeDisabled();
+  await e.popup.locator('#siteInput').focus();
+  await expect(pack).toHaveAttribute('aria-pressed', 'false');
+  await expect(e.popup.locator('#siteInput')).toBeFocused();
   const duration = e.popup.locator('[data-minutes="50"]');
   await duration.focus(); await e.popup.keyboard.press('Enter');
   await expect(duration).toHaveAttribute('aria-pressed', 'true');

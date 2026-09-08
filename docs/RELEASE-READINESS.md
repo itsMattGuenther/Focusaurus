@@ -49,7 +49,7 @@ used; the user's normal browser profile was not modified.
 | --- | --- |
 | `npm run check` | Pass: runtime syntax, local references, version alignment, required assets and static remote-code/CSP checks. |
 | `npm test` | **194 passed**, no failures or skips. Matching, rules, redirects, schedules, sessions, settings, history, moods, contrast, art and queue behavior. |
-| `npm run test:browser` | 16-scenario source suite passed; final package suite below adds a full-browser-restart scenario. |
+| `npm run test:browser` | **17 passed**, including full browser restart and delayed-action keyboard focus restoration. |
 | `FOCUSAURUS_EXTENSION_PATH=dist/extension npm run test:browser` | **17 passed** against production package contents. |
 | Accessibility subset | Zero Axe WCAG 2/2.1 A/AA violations across popup, welcome, settings, blocked and privacy pages in both themes. Measured 360px reflow and reduced motion. Automated coverage is not accessibility certification. |
 | Visual review | Reviewed illustrated mood assets, actual light/dark screens, narrow settings, toolbar mark and store graphics. ART-DIRECTION.md records sources and prompts. |
