@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Focusaurus",
   "version": "1.0.0",
-  "minimum_chrome_version": "120",
+  "minimum_chrome_version": "140",
   "description": "Make room for focus. Block distracting sites, set work hours, and find your way back with Doug, your dinosaur companion.",
 
   "permissions": [

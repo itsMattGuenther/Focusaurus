@@ -11,6 +11,7 @@
 
 import { parseInput, specKey } from '../shared/match.js';
 import { localDayKey } from '../shared/schedule.js';
+import { WEEK_LENGTH } from '../shared/history.js';
 
 export const SCHEMA_VERSION = 2;
 export const MAX_SITES = 300;
@@ -218,9 +219,8 @@ export async function getUsageDays(dayKeys) {
   return out;
 }
 
-/** Drop usage buckets older than `keepDays`. Bounded storage, and 90 days is
- *  more history than anyone reviews. */
-export async function pruneUsage(keepDays = 90) {
+/** Retain today and the preceding six local calendar days shown in the UI. */
+export async function pruneUsage(keepDays = WEEK_LENGTH) {
   const all = await chrome.storage.local.get(null);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - (keepDays - 1));

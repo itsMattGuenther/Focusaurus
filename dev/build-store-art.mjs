@@ -1,3 +1,4 @@
+import { browserOptions } from './browser.mjs';
 import { chromium } from '@playwright/test';
 import { readFileSync, mkdirSync, copyFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
@@ -6,7 +7,7 @@ const data = (path, mime) => `data:${mime};base64,${readFileSync(join(root, path
 const art = data('assets/art/doug-chill.webp', 'image/webp');
 const mark = data('assets/icons/icon128.png', 'image/png');
 const fonts = `@font-face{font-family:F;src:url('${data('assets/fonts/fraunces.woff2', 'font/woff2')}');font-weight:400 700}@font-face{font-family:P;src:url('${data('assets/fonts/publicsans.woff2', 'font/woff2')}');font-weight:400 700}`;
-const browser = await chromium.launch({ channel: 'chromium' });
+const browser = await chromium.launch({ ...browserOptions });
 try {
   const page = await browser.newPage({ deviceScaleFactor: 1 });
   for (const [name, width, height] of [['promo-small', 440, 280], ['promo-marquee', 1400, 560]]) {
@@ -29,7 +30,7 @@ try {
 
 // Actual product screenshots, taken with an installed extension and a sample
 // configuration. No remote sites, accounts, or real user history are used.
-const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true,
+const context = await chromium.launchPersistentContext('', { ...browserOptions, headless: true,
   viewport: { width: 1280, height: 800 }, args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`] });
 try {
   let worker = context.serviceWorkers()[0]; worker ||= await context.waitForEvent('serviceworker');

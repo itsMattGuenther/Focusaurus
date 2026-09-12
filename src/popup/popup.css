@@ -359,3 +359,5 @@ body::after { display: none; }
 }
 .site__remove:hover { background: var(--clay-wash); color: var(--clay); }
 .site__remove:focus-visible { outline: 2px solid var(--clay); outline-offset: 1px; }
+
+.access-notice { margin: var(--space-4) var(--space-5); }
