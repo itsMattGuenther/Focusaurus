@@ -22,7 +22,8 @@ See [release readiness](docs/RELEASE-READINESS.md) for verification and human ga
   and temporary passes after a 5 or 15 second pause. Locked mode removes passes.
 - Local work-hour schedules, including overnight windows. A manual stop is
   respected for the rest of the current window.
-- Seven-day attempt history, 90-day retention, and a clear-history control.
+- Seven-day attempt history with matching retention and a clear-history control.
+- Site-access checks before starting, with visible recovery instructions if access changes.
 - Welcome/setup page, settings import/export, custom dinosaur name, and
   system/daylight/lamplight appearance.
 - Local settings and history, bundled art/fonts, no account or analytics.
@@ -33,6 +34,8 @@ Chrome controls extension site access and incognito access. Internal browser
 pages and local files are outside the blocker’s scope.
 
 ## Try the release candidate
+
+Requires Chrome/Chromium **140 or newer**.
 
 1. Open `chrome://extensions` and enable Developer mode.
 2. Choose **Load unpacked**, then select this repository or `dist/extension`
@@ -59,6 +62,20 @@ npm run doug         # all seven illustrations at different sizes/in both themes
 npm run review       # local screenshots of every application surface
 npm run store-art    # actual product screenshots and promotional tiles
 ```
+
+On Linux with Chromium already installed, use isolated profiles with your own binary:
+
+```sh
+FOCUSAURUS_CHROMIUM_PATH=/usr/bin/chromium npm run verify
+FOCUSAURUS_CHROMIUM_PATH=/usr/bin/chromium FOCUSAURUS_EXTENSION_PATH=dist/extension npm run test:browser
+FOCUSAURUS_CHROMIUM_PATH=/usr/bin/chromium npm run review
+```
+
+The override also works for icon and store-art generation. It never uses your
+normal browser profile. Omit it to use Playwright's downloaded Chromium.
+Chrome 140 is the minimum because local storage access is restricted with
+`storage.local.setAccessLevel`; the installed Chromium version is recorded in
+release readiness. Browser tests do not establish compatibility with Brave or Firefox.
 
 On Linux CI, install the browser with `npx playwright install --with-deps chromium`.
 Browser tests use a separate temporary Chromium profile; they do not modify your

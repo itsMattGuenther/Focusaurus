@@ -397,3 +397,15 @@ body::after {
     scroll-behavior: auto !important;
   }
 }
+
+/* Visible permission recovery, shared by every control surface. */
+.access-notice {
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  background: var(--paper-raised);
+  color: var(--ink);
+}
+.access-notice h2 { margin: 0 0 var(--space-2); font-size: var(--text-base); }
+.access-notice p { margin: 0 0 var(--space-3); font-size: var(--text-sm); line-height: 1.6; }

@@ -2,6 +2,7 @@
 const REASONS = {
   'site-limit': 'Your list is full (300 sites). Remove a site before adding more.',
   'unsupported-pattern': 'Chrome cannot block this long path. Use a shorter path or the whole domain.',
+  'site-access': 'Site access is needed before focus can start. Open site access below to review it.',
   'no-sites': 'Choose a category or add a site before starting.',
   'already-running': 'A session is already running. Reopen the popup to see it.',
   'invalid-duration': 'Choose a valid session length.',
@@ -75,7 +76,22 @@ export function watchState(refresh) {
     timer = setTimeout(() => { if (!document.hidden) refresh().catch(feedback); }, 150);
   });
   window.addEventListener('focus', () => refresh().catch(feedback));
+  chrome.permissions.onAdded.addListener(() => refresh().catch(feedback));
+  chrome.permissions.onRemoved.addListener(() => refresh().catch(feedback));
 }
 
 // Read only the theme early, while the worker prepares state.
 chrome.storage.local.get('settings').then(({ settings }) => applyTheme(settings?.theme)).catch(() => {});
+
+/** The same recovery instructions on setup, popup and settings. */
+export function renderAccess(access) {
+  const panel = document.getElementById('siteAccess');
+  if (!panel) return;
+  panel.hidden = Boolean(access?.granted);
+  document.getElementById('siteAccessText').textContent = access?.unavailable
+    ? 'Focusaurus could not check website access. Reopen this page to try again, or review site access below.'
+    : 'Some sites in your list may stay open. In the extension details, set Site access to “On all sites” to cover your chosen sites and their subdomains. Your settings and history stay local.';
+}
+const accessButton = document.getElementById('siteAccessBtn');
+accessButton?.addEventListener('click', () => act(accessButton, () =>
+  chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` })));

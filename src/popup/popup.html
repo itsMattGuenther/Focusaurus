@@ -18,6 +18,12 @@
     </span>
   </header>
   <main>
+    <section class="access-notice" id="siteAccess" aria-labelledby="siteAccessTitle" hidden>
+      <h2 id="siteAccessTitle">Check site access</h2>
+      <p id="siteAccessText" role="status"></p>
+      <button class="btn btn--quiet" type="button" id="siteAccessBtn">Open site access</button>
+    </section>
+
   <p class="app-error" id="appError" role="alert" hidden></p>
 
   <!-- Doug and his current read on the day. The mood IS the interface: you
@@ -55,6 +61,7 @@
     <div id="sessionActive" hidden>
       <p class="countdown" id="countdown">--:--</p>
       <p class="countdown__note" id="countdownNote"></p>
+      <p class="panel__note" id="lockedNote" hidden>Locked mode · No temporary passes. You can still end the session below.</p>
       <button type="button" class="btn btn--quiet btn--block" id="endBtn">
         End session
       </button>

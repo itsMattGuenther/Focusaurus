@@ -1,6 +1,7 @@
 /** The worker owns all writes. Events run in one queue, while authoritative
  * state stays in Chrome storage and survives worker suspension. */
 import { compileRules } from './rules.js';
+import { siteAccess } from './access.js';
 import { createQueue } from './queue.js';
 import { resolveMood } from './mood.js';
 import { badgeText, sessionActive, OPEN_ENDED_MINUTES } from '../shared/session.js';
@@ -21,10 +22,10 @@ const enqueue = createQueue();
 const BLOCKED_PATH = '/src/blocked/blocked.html';
 const UI_PATHS = ['/src/popup/popup.html', '/src/options/options.html', '/src/welcome/welcome.html'];
 
-async function paintBadge(session) {
-  const text = badgeText(session);
+async function paintBadge(session, access) {
+  const text = session && !access.granted ? '!' : badgeText(session);
   await chrome.action.setBadgeText({ text });
-  await chrome.action.setTitle({ title: text ? `Focusaurus · ${text === '∞' ? 'Focusing' : `${text} remaining`}` : 'Focusaurus · Ready when you are' });
+  await chrome.action.setTitle({ title: text === '!' ? 'Focusaurus · Check site access; some sites may not be blocked' : text ? `Focusaurus · ${text === '∞' ? 'Focusing' : `${text} remaining`}` : 'Focusaurus · Ready when you are' });
   if (text) {
     await chrome.action.setBadgeBackgroundColor({ color: '#4a6741' });
     await chrome.action.setBadgeTextColor({ color: '#ffffff' });
@@ -60,7 +61,7 @@ async function reconcile() {
     deadline('session-end', enforcing ? local.session.endsAt : null),
     deadline('override-expiry', overrides.length ? Math.min(...overrides.map((o) => o.expiresAt)) : null),
     periodic('badge-tick', 1, enforcing), periodic('schedule-check', 1, settings.schedule.enabled),
-    periodic('housekeeping', 60), paintBadge(enforcing ? local.session : null),
+    periodic('housekeeping', 60), paintBadge(enforcing ? local.session : null, await siteAccess(settings.sites)),
   ]);
   if (enforcing && changed) await enforceOpenTabs(settings, { ...local, overrides });
   return { ok: true, enforcing, ruleCount: desired.length };
@@ -106,6 +107,7 @@ async function endSession({ byUser = true } = {}) {
   await patchLocal({ session: null, overrides: [],
     ...(suppress ? { scheduleSuppressedUntil: windowEndsAt(settings.schedule) } : {}) });
   await chrome.storage.session.remove('blockedVisits');
+  await pruneUsage();
   return reconcile();
 }
 
@@ -117,6 +119,7 @@ async function retireExpired() {
 async function startSession(minutes, source = 'manual', endsAt) {
   const settings = await getSettings();
   if (!settings.sites.length) return { ok: false, reason: 'no-sites' };
+  if (!(await siteAccess(settings.sites)).granted) return { ok: false, reason: 'site-access' };
   const planned = Number(minutes);
   if (!Number.isFinite(planned) || planned <= 0 || planned > OPEN_ENDED_MINUTES) return { ok: false, reason: 'invalid-duration' };
   await retireExpired();
@@ -128,6 +131,7 @@ async function startSession(minutes, source = 'manual', endsAt) {
   }, recentAttempts: [], overrides: [], scheduleSuppressedUntil: null });
   await patchSettings({ onboarded: true });
   await chrome.storage.session.remove('blockedVisits');
+  await pruneUsage();
   return reconcile();
 }
 
@@ -150,6 +154,7 @@ async function applySchedule() {
 }
 
 async function getState() {
+  await pruneUsage();
   await retireExpired();
   await applySchedule();
   await reconcile();
@@ -160,7 +165,7 @@ async function getState() {
   const session = sessionActive(local.session) ? local.session : null;
   const { mood, because } = resolveMood({ now, schedule: settings.schedule, session, recentAttempts, budgets: [], streak: 0 });
   const history = summarizeAttempts(usage, settings.sites);
-  return { settings, session, overrides: local.overrides.filter((o) => o.expiresAt > Date.now()), mood, because,
+  return { settings, session, access: await siteAccess(settings.sites), overrides: local.overrides.filter((o) => o.expiresAt > Date.now()), mood, because,
     attemptsToday: history.days.at(-1)?.attempts || 0, history,
     packs: STARTER_PACKS.map((p) => ({ id: p.id, label: p.label, blurb: p.blurb, status: packStatus(p, settings.sites) })),
     strictnessDelay: OVERRIDE_DELAYS[settings.strictness] };
@@ -315,6 +320,14 @@ chrome.runtime.onInstalled.addListener((details) => event(async () => {
   if (details.reason === 'install') await chrome.tabs.create({ url: chrome.runtime.getURL('/src/welcome/welcome.html') });
 }));
 chrome.runtime.onStartup.addListener(() => event(recover));
+async function accessChanged() {
+  await recover();
+  const [settings, local] = await Promise.all([getSettings(), getLocal()]);
+  // Restoring permission can activate existing DNR rules without changing them.
+  await enforceOpenTabs(settings, local);
+}
+chrome.permissions.onAdded.addListener(() => event(accessChanged));
+chrome.permissions.onRemoved.addListener(() => event(accessChanged));
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   if (details.frameId !== 0) return;
   event(async () => {

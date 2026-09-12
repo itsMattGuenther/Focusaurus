@@ -1,10 +1,11 @@
+import { browserOptions } from './browser.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 
 // Use the same happy Doug as the product. The cleaned source retains the
 // illustration's alpha; trim only empty margins before proportional scaling.
 const source = readFileSync(new URL('../assets/art/doug-stoked.webp', import.meta.url));
-const browser = await chromium.launch({ channel: 'chromium' });
+const browser = await chromium.launch({ ...browserOptions });
 try {
   const page = await browser.newPage({ deviceScaleFactor: 1 });
   const icons = await page.evaluate(async (url) => {

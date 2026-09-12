@@ -1,3 +1,4 @@
+import { browserOptions } from '../../dev/browser.mjs';
 import { test as base, chromium, expect } from '@playwright/test';
 import { resolve } from 'node:path';
 
@@ -5,7 +6,7 @@ export const test = base.extend({
   extension: async ({}, use) => {
     const root = resolve(process.env.FOCUSAURUS_EXTENSION_PATH || '.');
     const context = await chromium.launchPersistentContext('', {
-      channel: 'chromium', headless: true, viewport: { width: 1280, height: 800 },
+      ...browserOptions, headless: true, viewport: { width: 1280, height: 800 },
       args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`],
     });
     let worker = context.serviceWorkers()[0];

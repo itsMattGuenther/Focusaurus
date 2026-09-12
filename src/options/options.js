@@ -11,7 +11,7 @@
 import { renderDoug } from '../shared/doug.js';
 import { describeSchedule, isWithinSchedule } from '../shared/schedule.js';
 import { historyHeadline, timesPhrase } from '../shared/history.js';
-import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState } from '../shared/ui.js';
+import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState, renderAccess } from '../shared/ui.js';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -293,6 +293,7 @@ function render() {
   const name = settings.dino.name;
 
   applyTheme(settings.theme);
+  renderAccess(state.access);
   document.getElementById('themeSelect').value = settings.theme;
   renderDoug(els.doug, state.mood, { name });
   els.mastheadSub.textContent = `${name} is ${state.mood.replace('_', ' ')} — ${state.because}`;
