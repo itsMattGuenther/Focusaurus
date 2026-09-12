@@ -1,9 +1,10 @@
+import { browserOptions } from './browser.mjs';
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 const root = resolve('.');
 const out = resolve('docs/review'); mkdirSync(out, { recursive: true });
-const context = await chromium.launchPersistentContext('', { channel: 'chromium', headless: true,
+const context = await chromium.launchPersistentContext('', { ...browserOptions, headless: true,
   viewport: { width: 1280, height: 800 }, args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`] });
 try {
   let worker = context.serviceWorkers()[0]; worker ||= await context.waitForEvent('serviceworker');
@@ -37,5 +38,15 @@ try {
   }
   await options.setViewportSize({ width: 360, height: 800 });
   await options.screenshot({ path: `${out}/settings-narrow.png`, fullPage: true, animations: 'disabled' });
+  await send('patchSettings', { values: { strictness: 'locked' } });
+  await page.reload(); await page.locator('#lockedNote').waitFor();
+  await page.screenshot({ path: `${out}/popup-locked-dark.png`, fullPage: true, animations: 'disabled' });
+  const manager = await context.newPage(); await manager.goto(`chrome://extensions/?id=${id}`);
+  await manager.evaluate((extensionId) => chrome.developerPrivate.updateExtensionConfiguration({ extensionId, hostAccess: 'ON_CLICK' }), id);
+  for (const theme of ['light', 'dark']) {
+    await send('patchSettings', { values: { theme } });
+    await page.reload(); await page.locator('#siteAccess').waitFor();
+    await page.screenshot({ path: `${out}/popup-access-${theme}.png`, fullPage: true, animations: 'disabled' });
+  }
   console.log(`Review images: ${out}`);
 } finally { await context.close(); }

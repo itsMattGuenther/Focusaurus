@@ -16,6 +16,12 @@
         <h2 id="setupTitle">What needs a little space?</h2>
         <p>Choose a category, add your own site, or combine both. Matching open tabs will pause too. You can change your list anytime.</p>
         <p class="app-error" id="appError" role="alert" hidden></p>
+    <section class="access-notice" id="siteAccess" aria-labelledby="siteAccessTitle" hidden>
+      <h2 id="siteAccessTitle">Check site access</h2>
+      <p id="siteAccessText" role="status"></p>
+      <button class="btn btn--quiet" type="button" id="siteAccessBtn">Open site access</button>
+    </section>
+
         <div id="packChips" class="packs" role="group" aria-label="Categories to block"></div>
         <form id="addForm" class="add"><label for="siteInput" class="visually-hidden">Site to block</label><input class="field" id="siteInput" placeholder="instagram.com" autocomplete="off" spellcheck="false" maxlength="500"><button class="btn btn--quiet" type="submit">Add</button></form>
         <p id="addError" role="status" class="setup__note"></p>

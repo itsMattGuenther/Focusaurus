@@ -1,11 +1,12 @@
 import { renderDoug } from '../shared/doug.js';
-import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState } from '../shared/ui.js';
+import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState, renderAccess } from '../shared/ui.js';
 const el = (id) => document.getElementById(id);
 
 async function refresh() {
   const state = await send('getState');
   const restore = rememberFocus();
   applyTheme(state.settings.theme);
+  renderAccess(state.access);
   renderDoug(el('dougMount'), state.session ? 'focused' : 'chill', { name: state.settings.dino.name });
   el('dinoName').textContent = `${state.settings.dino.name}, Focusaurus`;
   el('packChips').replaceChildren();
@@ -25,10 +26,10 @@ async function refresh() {
   }
   const count = state.settings.sites.length;
   el('siteCount').textContent = count ? `${count} site${count === 1 ? '' : 's'} ready to pause during your sessions.` : 'Choose at least one site to get started.';
-  el('startBtn').disabled = !count || Boolean(state.session);
+  el('startBtn').disabled = !count || Boolean(state.session) || !state.access.granted;
   el('startBtn').dataset.stateDisabled = String(el('startBtn').disabled);
   el('startBtn').textContent = state.session ? 'Your session is running' : 'Start my first 25 minutes ↗';
-  el('started').hidden = !state.session;
+  el('started').hidden = !state.session || !state.access.granted;
   restore();
 }
 el('startBtn').addEventListener('click', () => act(el('startBtn'), async () => {

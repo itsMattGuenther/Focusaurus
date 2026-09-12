@@ -11,7 +11,7 @@ import { renderDoug, MOODS } from '../shared/doug.js';
 import { moodCopy } from '../shared/copy.js';
 import { isOpenEnded } from '../shared/session.js';
 import { historyGlance } from '../shared/history.js';
-import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState } from '../shared/ui.js';
+import { send, act, requireSuccess, applyTheme, feedback, rememberFocus, watchState, renderAccess } from '../shared/ui.js';
 
 const els = {
   statusChip: document.getElementById('statusChip'),
@@ -184,6 +184,7 @@ function renderPacks(packs) {
 function render(state) {
   const restore = rememberFocus();
   applyTheme(state.settings.theme);
+  renderAccess(state.access);
   renderDoug(els.doug, state.mood, { name: state.settings.dino.name });
   if (lastMood !== state.mood) els.moodLine.textContent = moodCopy(state.mood);
   lastMood = state.mood;
@@ -191,12 +192,17 @@ function render(state) {
   els.moodBecause.textContent = state.because || MOODS[state.mood]?.because || '';
 
   renderSession(state.session);
+  if (!state.access.granted) {
+    els.statusChip.textContent = 'Check site access';
+    els.statusChip.dataset.on = 'false';
+  }
+  document.getElementById('lockedNote').hidden = !state.session || state.settings.strictness !== 'locked';
   els.attemptsToday.textContent = String(state.attemptsToday || 0);
   els.attemptsWeek.textContent = historyGlance(state.history);
 
   renderPacks(state.packs);
   renderSites(state.settings.sites);
-  els.startBtn.disabled = state.settings.sites.length === 0;
+  els.startBtn.disabled = state.settings.sites.length === 0 || !state.access.granted;
   els.startBtn.dataset.stateDisabled = String(els.startBtn.disabled);
   document.getElementById('setupHint').hidden = state.settings.sites.length > 0;
   restore();

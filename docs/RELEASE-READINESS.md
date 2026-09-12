@@ -5,10 +5,63 @@ privacy page, submission kit and production archive are ready locally. This is
 not a claim of Chrome Web Store approval or publication. Publisher identity,
 support contact and domain remain undecided, as confirmed by the user.
 
-Reviewed and prepared on **2026-09-08**. The user selected the first Chrome Web
+Initially reviewed and prepared on **2026-09-08**. See the September 12
+verification below for the current package. The user selected the first Chrome Web
 Store release and warm illustrated field-guide art direction. Sessions,
 schedules, blocking, temporary passes and attempt history are the release scope.
 Daily time budgets, browsing-time tracking, streak rewards and Firefox are deferred.
+
+## Chrome follow-up · September 12, 2026
+
+The user requested Chrome completion on Omarchy, with a check-in before Brave
+and another before Firefox. Publisher/account tasks are planned for Monday,
+September 14; no store submission or privacy hosting has occurred.
+
+Changes in this candidate:
+
+- Chrome minimum raised from 120 to 140 to match the local-storage access API.
+  Chromium 120's implementation restricts `setAccessLevel` to session storage;
+  current compatibility data lists all storage areas from 140. References:
+  [Chromium 120 source](https://raw.githubusercontent.com/chromium/chromium/120.0.6099.109/extensions/browser/api/storage/storage_api.cc)
+  and [storage compatibility](https://raw.githubusercontent.com/mdn/browser-compat-data/main/webextensions/api/storage.json).
+- Effective website access is checked before manual and scheduled starts.
+  Setup, popup and settings explain missing access and link to the extension's
+  browser details. An active session keeps its deadline while a toolbar `!`
+  and popup warning identify incomplete blocking. Restoring access also pauses
+  matching tabs that were already open. No new manifest permissions were added.
+- History now keeps today and the previous six local calendar days. Legacy
+  older buckets are removed on recovery, control-page reads and maintenance;
+  current settings and active sessions survive cleanup. Privacy policy 1.1,
+  effective September 12, and listing copy describe the shorter retention.
+- Locked mode is retained. Its existing visible settings/blocked-page explanation
+  is now also shown in the active popup: no temporary passes, with session ending
+  still available. A hover is not required to discover this distinction.
+- Test and visual tools accept `FOCUSAURUS_CHROMIUM_PATH`, so installed Chromium
+  can be used on Linux without a downloaded Playwright browser. Every run uses
+  an isolated profile. The standard CI/browser-download path is preserved.
+
+Current local environment: Omarchy/Arch Linux, Node **26.8.1**, npm **11.19.0**,
+installed Chromium **152.0.7977.82**, Playwright **1.63.0**.
+
+| Current check | Result |
+| --- | --- |
+| Runtime static checks | Pass. |
+| Unit tests | **194 passed**; individual cases confirmed with Node's TAP reporter and `--test-isolation=none`. |
+| Browser suite against source | **21 passed** using installed Chromium. |
+| Browser suite against `dist/extension` | **21 passed** using installed Chromium. |
+| Site-access integration | Real browser `On click`/`On all sites` changes; denied manual/scheduled starts, active-session warning, working details button, and restoration of open-tab blocking. |
+| Access-check failure | Simulated browser API failure remains visible and prevents a false start; recovery restores the controls. |
+| Retention migration | 90 seeded daily buckets shrink to exactly the displayed seven; settings and active session remain intact. |
+| Accessibility | Existing full-surface checks plus limited-access control pages in both themes, with reduced motion and 360px reflow (420px popup). |
+| Visual review | Refreshed `docs/review/` captures; inspected Locked mode and site-access popup states in the existing visual system. |
+| Production archive | **48 runtime files**, **774,171 bytes**; build verifies all decompressed bytes. SHA-256 is recorded beside the ZIP. |
+
+This is Chromium validation of the Chrome extension. Branded Google Chrome,
+Brave and Firefox have not been independently run in this follow-up. Actual OS
+sleep/wake, human screen-reader use, and incognito/site-policy combinations
+remain manual checks; automated lifecycle tests cover expiry and browser restart.
+CI has not been run remotely for these uncommitted changes. The earlier Windows
+results below are historical evidence, not additional runs on the current package.
 
 ## Inheritance audit and resolution
 
@@ -31,7 +84,7 @@ or distribution checks. These were the material release findings:
 | P1 | Duration selection, keyboard focus, narrow layouts and motion need verification. | Accessible selection/status, focus restoration, both-theme Axe checks, 360px reflow and reduced motion. |
 | P1 | Dinosaur/icons lack a coherent, finished identity. | Seven original illustrated Doug states, transparent WebP assets and 16/32/48/128px icons rescaled from happy Doug, refreshed surfaces and store artwork. |
 | P1 | The real toolbar window collapses because its width is capped by its initial viewport. | Explicit 420px root width, normal word wrapping and a regression exercising Chrome's actual action popup in both themes. |
-| P1 | Local-data claim conflicts with sync; no policy or history deletion. | Local settings, accurate bundled/public-ready policy, 90-day maintenance and clear-history control preserving the session/settings. |
+| P1 | Local-data claim conflicts with sync; no policy or history deletion. | Local settings, accurate bundled/public-ready policy, seven-day maintenance and clear-history control preserving the session/settings. |
 | P1 | No release package, browser harness, CI or submission materials. | Pinned tools, package allowlist/byte verification/checksum, browser suite, configured GitHub workflow, listing copy/images and complete font licenses. |
 | P2 | Historical docs promise unsupported features and contain stale assumptions. | Rewritten product scope, architecture, art provenance, roadmap and store materials. |
 
@@ -40,7 +93,7 @@ That assessment is bounded by the verification below; human launch checks are
 still required. Product retention and companion usefulness have not yet been
 validated with a pilot cohort.
 
-## Verification evidence
+## Historical verification · September 8
 
 Local environment: Windows, Node **24.14.0**, npm **11.9.0**, Playwright **1.63.0**,
 Chromium **153.0.8010.12**, Axe Playwright **4.13.0**. Isolated test profiles were
@@ -84,8 +137,10 @@ tabs/SPA routes and full browser restart persistence.
 
 These remain open for the publisher/release reviewer:
 
-- [ ] Choose publisher name, public support email and domain. Add the contact
+- [ ] Choose publisher name, public support email and a privacy-hosting URL (a custom domain is optional). Add the contact
   to the listing and, if desired, directly to the privacy policy.
+- [ ] Register the publisher account, pay the fee, verify its contact email,
+  enable two-step verification, and complete the applicable trader declaration.
 - [ ] Host all of `dist/privacy/` at a public HTTPS URL; check it from a
   signed-out browser and enter that exact URL in the store dashboard.
 - [ ] Install `dist/extension` in current stable Chrome in a separate profile.
@@ -96,7 +151,7 @@ These remain open for the publisher/release reviewer:
   math and browser restart, not actual OS sleep or every locale.
 - [ ] Check Chrome's per-site access controls and incognito behavior against
   the stated limits. Confirm restricted access is clear in Chrome's controls.
-- [ ] Perform an NVDA/keyboard review of setup, popup, settings dialogs and
+- [ ] Perform a screen-reader/keyboard review (for example Orca on Linux or NVDA on Windows) of setup, popup, settings dialogs and
   blocked page. Confirm Doug's final art and copy with a human reviewer.
 - [ ] Review the dashboard's current permissions/data declarations against the
   policy, upload the archive/images and submit for Chrome Web Store review.
