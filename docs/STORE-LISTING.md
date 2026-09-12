@@ -23,7 +23,8 @@ return to what matters.
   pauses the schedule until the next work window.
 • Choose a 5-second or 15-second pause before a temporary pass, or turn passes
   off with Locked mode. You can always end a session from the popup.
-• Notice your habits with seven days of blocked-attempt counts.
+• Notice your habits with seven days of blocked-attempt counts. Older history is automatically removed.
+• Get clear recovery instructions when browser site access prevents blocking.
 • Make Doug your own with a name and daylight or lamplight appearance.
 
 Private by design: no account, no analytics, no advertising, and no automatic
@@ -31,11 +32,11 @@ settings sync. Settings and history stay in your Chrome profile. Export your
 settings or clear your history whenever you like. Code, fonts, and artwork are
 bundled with the extension.
 
-Focusaurus is a voluntary focus companion for Chrome. It does not block other
+Focusaurus is a voluntary focus companion for Chrome 140 and newer. It does not block other
 browsers or desktop apps, and it does not measure browsing time or provide
 daily time budgets. It applies to HTTP and HTTPS sites; internal Chrome pages
 and local files are outside its scope. Schedule and timer updates may be delayed
-while your device sleeps. Chrome controls website access and incognito access.
+while your device sleeps. Chrome controls website access and incognito access. Site access is checked before sessions start.
 
 ## Single purpose
 
@@ -53,6 +54,8 @@ or scheduled focus sessions, with local attempt history and a dinosaur companion
 | alarms | End timed sessions, expire temporary passes, update the toolbar countdown, apply work hours, and prune old history. |
 
 Remote code: **none**. Remote fonts/assets: **none**. Third-party runtime SDKs: **none**.
+Local history retention: today and the previous six local calendar days. No runtime data is sent to the publisher.
+
 Review the dashboard’s exact data declarations against the bundled privacy
 policy: addresses are processed locally for blocking, local history contains
 site-level counts and session timestamps, and original targets are visible in
@@ -74,6 +77,7 @@ page with `npm run build`.
 ## Publisher-owned submission steps
 
 - [ ] Confirm the developer account/publisher display name and public support email.
+- [ ] Pay the one-time registration fee, verify the contact email, enable two-step verification, and complete the applicable trader declaration.
 - [ ] Host `dist/privacy/` at the publisher’s chosen publicly accessible HTTPS URL.
 - [ ] Enter that exact privacy URL and publisher contact in the dashboard.
 - [ ] Review the final product/art and run the manual checks in RELEASE-READINESS.md.

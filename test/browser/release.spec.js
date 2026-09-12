@@ -1,3 +1,4 @@
+import { browserOptions } from '../../dev/browser.mjs';
 import { test, expect } from './fixtures.js';
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from '@playwright/test';
@@ -56,6 +57,8 @@ test('locked block page releases after session ends and cannot issue privileged 
   const blocked = await e.context.newPage();
   await blocked.goto(`${e.url('blocked/blocked.html')}?site=${added.site.id}#url=https://example.com/`);
   await expect(blocked.locator('#overrideBtn')).toBeHidden();
+  await expect(blocked.locator('#overrideNote')).toContainText('no temporary passes');
+  await expect(e.popup.locator('#lockedNote')).toBeVisible();
   expect((await blocked.evaluate(() => chrome.runtime.sendMessage({ action: 'endSession' }))).error).toBeTruthy();
   await e.send('endSession');
   await expect(blocked.locator('#overrideBtn')).toBeVisible();
@@ -68,7 +71,8 @@ test('legacy settings migrate intact and history stays local', async ({ extensio
     await chrome.storage.sync.set({ schemaVersion: 1, dino: { name: 'Fern' }, strictness: 'gentle', sites: [
       { id: 'legacy', label: 'example.com', match: { kind: 'domain', value: 'example.com' }, mode: 'block' },
     ] });
-    await chrome.storage.local.set({ 'usage:2026-09-08': { perSite: { legacy: { attempts: 4 } }, sessions: [] } });
+    const { usageKey } = await import('../background/storage.js');
+    await chrome.storage.local.set({ [usageKey()]: { perSite: { legacy: { attempts: 4 } }, sessions: [] } });
     await chrome.storage.local.remove('settings');
     const { initializeStorage } = await import('../background/storage.js');
     await initializeStorage();
@@ -77,7 +81,7 @@ test('legacy settings migrate intact and history stays local', async ({ extensio
   expect(state.settings.dino.name).toBe('Fern');
   expect(state.settings.sites[0].id).toBe('legacy');
   expect(await e.popup.evaluate(() => chrome.storage.sync.get(null))).toEqual({});
-  expect((await e.popup.evaluate(() => chrome.storage.local.get('usage:2026-09-08')))['usage:2026-09-08'].perSite.legacy.attempts).toBe(4);
+  expect(state.attemptsToday).toBe(4);
 });
 
 test('invalid imports preserve settings and exports round-trip', async ({ extension: e }) => {
@@ -302,7 +306,7 @@ test('a full browser restart preserves settings and resumes the existing session
   let context;
   const open = async () => {
     context = await chromium.launchPersistentContext(profile, {
-      channel: 'chromium', headless: true,
+      ...browserOptions, headless: true,
       args: [`--disable-extensions-except=${root}`, `--load-extension=${root}`],
     });
     const worker = context.serviceWorkers()[0] || await context.waitForEvent('serviceworker');
@@ -324,4 +328,104 @@ test('a full browser restart preserves settings and resumes the existing session
     expect((await worker.evaluate(() => chrome.declarativeNetRequest.getDynamicRules())).length).toBe(1);
     expect((await worker.evaluate(() => chrome.alarms.get('session-end'))).scheduledTime).toBe(before.session.endsAt);
   } finally { await context?.close(); }
+});
+
+test('withheld site access prevents false starts and restores blocking after access returns', async ({ extension: e }) => {
+  await e.send('addSite', { input: 'example.com' });
+  const manager = await e.context.newPage();
+  await manager.goto(`chrome://extensions/?id=${e.id}`);
+  const setAccess = (hostAccess) => manager.evaluate(({ extensionId, hostAccess }) =>
+    chrome.developerPrivate.updateExtensionConfiguration({ extensionId, hostAccess }), { extensionId: e.id, hostAccess });
+  await setAccess('ON_CLICK');
+  await expect.poll(async () => (await e.send('getState')).access.granted).toBe(false);
+  await expect(e.popup.locator('#siteAccess')).toBeVisible();
+  await expect(e.popup.locator('#statusChip')).toHaveText('Check site access');
+  await expect(e.popup.locator('#startBtn')).toBeDisabled();
+  expect(await e.send('startSession', { minutes: 25 })).toEqual({ ok: false, reason: 'site-access' });
+  expect((await e.send('getState')).session).toBe(null);
+  const schedule = await e.popup.evaluate(() => {
+    const clock = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return { enabled: true, days: [0, 1, 2, 3, 4, 5, 6],
+      start: clock(new Date(Date.now() - 60000)), end: clock(new Date(Date.now() + 3600000)) };
+  });
+  await e.send('patchSettings', { values: { schedule } });
+  expect((await e.send('getState')).session).toBe(null);
+  await e.send('patchSettings', { values: { schedule: { enabled: false } } });
+  const welcome = await e.context.newPage(); await welcome.goto(e.url('welcome/welcome.html'));
+  await expect(welcome.locator('#siteAccess')).toBeVisible();
+  await expect(welcome.locator('#startBtn')).toBeDisabled();
+  const options = await e.context.newPage(); await options.goto(e.url('options/options.html'));
+  await expect(options.locator('#siteAccess')).toBeVisible();
+  for (const theme of ['light', 'dark']) {
+    await e.send('patchSettings', { values: { theme } });
+    for (const page of [e.popup, welcome, options]) {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.evaluate(() => document.fonts.ready);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.bringToFront();
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => ({ target: n.target, summary: n.failureSummary })) })), `${theme} ${page.url()}`).toEqual([]);
+      await page.setViewportSize({ width: page === e.popup ? 420 : 360, height: 800 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  }
+  const opened = e.context.waitForEvent('page');
+  await e.popup.locator('#siteAccessBtn').click();
+  await expect(await opened).toHaveURL(`chrome://extensions/?id=${e.id}`);
+  await setAccess('ON_ALL_SITES');
+  await expect(e.popup.locator('#siteAccess')).toBeHidden();
+  await e.send('startSession', { minutes: 25 });
+  const session = (await e.send('getState')).session;
+  await setAccess('ON_CLICK');
+  await expect.poll(() => e.popup.evaluate(() => chrome.action.getBadgeText({}))).toBe('!');
+  await expect(e.popup.locator('#statusChip')).toHaveText('Check site access');
+  expect((await e.send('getState')).session).toEqual(session);
+  await e.context.route('https://example.com/**', (route) => route.fulfill({ body: 'Access is withheld.' }));
+  const unblocked = await e.context.newPage(); await unblocked.goto('https://example.com/work');
+  await expect(unblocked.locator('body')).toHaveText('Access is withheld.');
+  await setAccess('ON_ALL_SITES');
+  await expect(unblocked).toHaveURL(/blocked\.html/);
+  await expect(unblocked.locator('#attemptsValue')).toHaveText('Paused open tab');
+  await expect(e.popup.locator('#statusChip')).toHaveText('Focusing');
+  expect(await e.popup.evaluate(() => chrome.action.getBadgeText({}))).not.toBe('!');
+});
+
+test('retention removes older prototype history while keeping the entire displayed week and active state', async ({ extension: e }) => {
+  const site = (await e.send('addSite', { input: 'example.com' })).site;
+  await e.send('startSession', { minutes: 25 });
+  const before = (await e.send('getState')).session;
+  const keys = await e.popup.evaluate(async (siteId) => {
+    const { weekKeys } = await import('../shared/history.js');
+    const days = weekKeys(new Date(), 90);
+    await chrome.storage.local.set(Object.fromEntries(days.map((day) => [`usage:${day}`, { perSite: { [siteId]: { attempts: 1, overrides: 0 } }, sessions: [] }])));
+    return days.map((day) => `usage:${day}`);
+  }, site.id);
+  const after = await e.send('getState');
+  expect(after.history.total).toBe(7);
+  expect(after.history.days).toHaveLength(7);
+  expect(after.session).toEqual(before);
+  expect(after.settings.sites[0]).toEqual(site);
+  const stored = await e.popup.evaluate(() => chrome.storage.local.get(null));
+  expect(Object.keys(stored).filter((key) => key.startsWith('usage:')).sort()).toEqual(keys.slice(-7));
+});
+
+
+test('failed access checks are visible and cannot start a misleading session', async ({ extension: e }) => {
+  await e.send('addSite', { input: 'example.com' });
+  await e.worker.evaluate(() => {
+    globalThis.originalContains = chrome.permissions.contains;
+    chrome.permissions.contains = async () => { throw new Error('Simulated unavailable browser API'); };
+  });
+  try {
+    await e.popup.reload();
+    await expect(e.popup.locator('#siteAccessText')).toContainText('could not check website access');
+    await expect(e.popup.locator('#startBtn')).toBeDisabled();
+    expect(await e.send('startSession', { minutes: 25 })).toEqual({ ok: false, reason: 'site-access' });
+    expect((await e.send('getState')).session).toBe(null);
+  } finally {
+    await e.worker.evaluate(() => { chrome.permissions.contains = globalThis.originalContains; delete globalThis.originalContains; });
+  }
+  await e.popup.reload();
+  await expect(e.popup.locator('#siteAccess')).toBeHidden();
+  await expect(e.popup.locator('#startBtn')).toBeEnabled();
 });

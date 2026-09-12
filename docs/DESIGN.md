@@ -2,7 +2,7 @@
 
 ## Runtime
 
-Plain ES modules, HTML and CSS in a Chrome Manifest V3 extension. No runtime
+Plain ES modules, HTML and CSS in a Chrome Manifest V3 extension (Chrome 140+). No runtime
 framework, remote code, content scripts, accounts, backend, or telemetry.
 Development dependencies are pinned and excluded from the package.
 
@@ -41,8 +41,9 @@ Settings formerly lived in Chrome sync. The entire list exceeded sync’s 8 KB
 per-item quota when category packs were combined. Migration writes sanitized
 local settings before removing only the known legacy Focusaurus sync keys.
 Subsequent settings remain local. Local storage access is restricted to trusted
-extension contexts. History is pruned to 90 calendar days on recovery and hourly
-maintenance. Session records and recent-attempt arrays are bounded.
+extension contexts. History retains today and the preceding six local calendar days, matching the
+shared week length. Older buckets are pruned on recovery, control-page reads,
+session transitions and hourly maintenance. Session records and recent-attempt arrays are bounded.
 
 Imports require a settings object with a sites array; future schema versions,
 unrelated JSON and oversized files are refused. Patterns are rebuilt from site
@@ -79,6 +80,21 @@ matched site ID is in its query. This preserves original query parameters and
 fragments through DNR substitution. Only safe HTTP/HTTPS destinations can be
 opened. Chrome’s own history may retain blocked-page addresses; the privacy
 policy states this limitation.
+
+### Site access
+
+`access.js` checks effective host grants using `permissions.contains`. Full
+HTTP/HTTPS access takes one call; restricted access is checked against the
+configured domains, including subdomains and both schemes, in one batched call.
+No extra manifest permission is needed. Unknown access is treated as unavailable.
+Manual and scheduled sessions cannot start without the required access.
+
+Revoking access during a session preserves its deadline and usable rules, but
+shows a warning in the control pages and an exclamation mark on the toolbar.
+Restoring access reconciles rules and pauses matching open tabs even when the
+rules themselves did not change. Permission events and returning to a control
+page refresh access status. The recovery button opens this extension's browser
+details; only the user changes its grants.
 
 ## Worker and clock lifecycle
 

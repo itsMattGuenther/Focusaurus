@@ -7,6 +7,13 @@ Finish the gates in [RELEASE-READINESS.md](RELEASE-READINESS.md), review the
 Chrome Web Store account. The repository’s former multi-phase v0.x plan is
 superseded by this focused release scope.
 
+## Agreed browser sequence · September 12, 2026
+
+Finish and review Chrome/Chromium first. Stop for a user check-in before Brave
+validation, then stop again before beginning the Firefox port. Publisher account
+and identity tasks are planned for Monday, September 14. The user will invite
+friends to pilot the releases before broad promotion.
+
 ## First two weeks · earn trust
 
 - Run an opt-in pilot with a small group. Learn whether Doug stays enabled.
