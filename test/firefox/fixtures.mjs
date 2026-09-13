@@ -1,4 +1,4 @@
-import { Builder, By } from 'selenium-webdriver';
+import { Builder, By, error } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 import { resolve } from 'node:path';
 import { FIREFOX_ID } from '../../dev/manifests.mjs';
@@ -22,7 +22,14 @@ export async function launchFirefox() {
     const call = (action, payload = {}) => driver.executeAsyncScript(function (action, payload, done) {
       browser.runtime.sendMessage({ action, ...payload }).then(done, (err) => done({ error: err.message }));
     }, action, payload);
-    const poll = (fn) => driver.wait(fn, 10000, 'Firefox state did not settle', 100);
+    const poll = (fn) => driver.wait(async () => {
+      try { return await fn(); }
+      catch (err) {
+        // A redirect can commit its URL before the new document exposes its DOM.
+        if (err instanceof error.NoSuchElementError || err instanceof error.StaleElementReferenceError) return false;
+        throw err;
+      }
+    }, 10000, 'Firefox state did not settle', 100);
     const text = async (selector) => (await driver.findElement(By.css(selector)).getAttribute('textContent')).trim();
     const visible = async (selector) => {
       const matches = await driver.findElements(By.css(selector));
