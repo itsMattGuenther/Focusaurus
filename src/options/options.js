@@ -1,3 +1,4 @@
+import { extensionApi as chrome } from '../shared/browser.js';
 /* ==========================================================================
    Options — behavior
    --------------------------------------------------------------------------
@@ -419,7 +420,7 @@ els.importFile.addEventListener('change', async () => {
   if (!res?.ok) {
     els.dataNote.dataset.tone = 'bad';
     els.dataNote.textContent =
-      res?.reason === 'unsupported-pattern' ? 'This backup contains a path Chrome cannot block. Shorten that path before importing.' :
+      res?.reason === 'unsupported-pattern' ? 'This backup contains a path your browser cannot block. Shorten that path before importing.' :
       res?.reason === 'newer-version' ? 'This backup is from a newer Focusaurus version. Update the extension first.' : res?.reason === 'wrong-format'
         ? "That file isn't a Focusaurus export."
         : "Couldn't read that file — it doesn't look like valid JSON.";
@@ -456,7 +457,7 @@ function confirmAction(title, text, label) {
 }
 
 document.getElementById('clearHistoryBtn').addEventListener('click', (e) => act(e.currentTarget, async () => {
-  if (!await confirmAction('Clear your history?', 'This deletes recorded attempts and past sessions from this Chrome profile. Your blocked sites, settings, and current session stay.', 'Clear history')) return;
+  if (!await confirmAction('Clear your history?', 'This deletes recorded attempts and past sessions from this browser profile. Your blocked sites, settings, and current session stay.', 'Clear history')) return;
   requireSuccess(await send('clearHistory'));
   await refresh();
   els.dataNote.dataset.tone = 'good'; els.dataNote.textContent = 'History cleared.';

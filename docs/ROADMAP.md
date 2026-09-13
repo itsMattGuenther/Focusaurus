@@ -7,12 +7,15 @@ Finish the gates in [RELEASE-READINESS.md](RELEASE-READINESS.md), review the
 Chrome Web Store account. The repository’s former multi-phase v0.x plan is
 superseded by this focused release scope.
 
-## Agreed browser sequence · September 12, 2026
+## Browser sequence · updated September 13, 2026
 
-Finish and review Chrome/Chromium first. Stop for a user check-in before Brave
-validation, then stop again before beginning the Firefox port. Publisher account
-and identity tasks are planned for Monday, September 14. The user will invite
-friends to pilot the releases before broad promotion.
+Chrome preparation is complete. The user authorized the Firefox port on
+September 13; the repository now builds separate Chrome and Firefox candidates.
+Complete Mozilla signing/listing through the chosen publisher account before
+sharing a normally installable Firefox release. Brave uses the Chrome Web Store
+package and passes the same 21 integration tests locally; a focused pilot
+still covers normal store installation and updates. Publisher identity tasks
+are planned for Monday, September 14, followed by a friends-and-family pilot.
 
 ## First two weeks · earn trust
 
@@ -30,7 +33,7 @@ friends to pilot the releases before broad promotion.
 | Time tracking | Users request visibility; focused-tab/idle/sleep accounting can be measured accurately without excessive permissions. |
 | Per-site budgets | Tracking is demonstrably accurate and pilot users prefer budgets over sessions. Give every limit a clear recovery path. |
 | Gentle completed-session review | Users want progress context beyond attempt counts; avoid pressure and scorekeeping. |
-| Firefox | Chrome behavior is stable and enough users need it to justify a separate lifecycle/permission/testing matrix. |
+| Older Firefox ESR / Android | Explicit demand and independent lifecycle, permission and UI validation. Desktop 153+ is the current Firefox target. |
 | Sync | Explicit user demand; opt-in design and an honest privacy model. Never reintroduce a single oversized Chrome sync item. |
 | More character poses | Keep silhouette/texture consistency; review at real sizes and with reduced motion. |
 

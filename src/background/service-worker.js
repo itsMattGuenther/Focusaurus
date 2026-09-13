@@ -1,3 +1,4 @@
+import { extensionApi as chrome, trustedPage } from '../shared/browser.js';
 /** The worker owns all writes. Events run in one queue, while authoritative
  * state stays in Chrome storage and survives worker suspension. */
 import { compileRules } from './rules.js';
@@ -290,12 +291,8 @@ async function supportsMatch(match) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  let path;
-  try {
-    const url = new URL(sender.url);
-    if (sender.id !== chrome.runtime.id || url.protocol !== 'chrome-extension:' || url.host !== chrome.runtime.id) throw Error();
-    path = url.pathname;
-  } catch { sendResponse({ error: 'Untrusted message source.' }); return false; }
+  const path = trustedPage(sender);
+  if (!path) { sendResponse({ error: 'Untrusted message source.' }); return false; }
   const blockedAction = ['getBlockedContext', 'requestOverride'].includes(msg?.action);
   const allowed = blockedAction ? path === BLOCKED_PATH : UI_PATHS.includes(path);
   if (!allowed || !Object.hasOwn(HANDLERS, msg?.action)) {
