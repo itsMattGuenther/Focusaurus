@@ -56,9 +56,10 @@ and Android are not qualified.
 
 Both ZIPs contain **49 runtime files** and are checked byte-for-byte after
 compression; matching inventories and checksums are generated in `dist/`.
-The Chrome ZIP is **775,159 bytes** and Firefox ZIP **775,241 bytes**. Their only
+The Chrome ZIP is **774,969 bytes** and Firefox ZIP **775,051 bytes**. Their only
 content difference is the generated manifest. Repeated builds produce the same
-checksums. Brave needs no separate build or store submission; normal store
+checksums. Runtime text is normalized to LF during staging, so Windows CRLF
+checkouts and Linux CI package the same source bytes. Brave needs no separate build or store submission; normal store
 installation/update checks remain part of the pilot.
 The official Mozilla linter's development-only dependency chain has unresolved
 npm advisories; see the explicit [tooling advisory](FIREFOX-RELEASE.md#tooling-advisory).
