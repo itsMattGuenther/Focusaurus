@@ -2,7 +2,8 @@
 
 ## Runtime
 
-Plain ES modules, HTML and CSS in a Chrome Manifest V3 extension (Chrome 140+). No runtime
+Plain ES modules, HTML and CSS in Manifest V3 extensions for Chrome 140+ and
+Firefox desktop 153+. No runtime
 framework, remote code, content scripts, accounts, backend, or telemetry.
 Development dependencies are pinned and excluded from the package.
 
@@ -20,10 +21,25 @@ assets/icons/   happy Doug rescaled into four PNG icon sizes
 assets/fonts/   locally bundled fonts and full redistribution notices
 ```
 
+## Browser packaging
+
+`manifest.json` is the Chrome source manifest. `dev/manifests.mjs` derives the
+Firefox manifest with an event-page `background.scripts` entry, stable add-on
+ID `focusaurus@itsmattguenther`, minimum 153, and a `none` data-collection
+declaration. Both targets use the same module code and assets. Firefox's minimum
+retains the per-document security boundary: `runtime.MessageSender.documentId`
+was added in 153. Do not lower it without redesigning and retesting that boundary.
+
+`src/shared/browser.js` selects native Promise APIs in each browser. Sender
+validation compares the public add-on ID separately from the origin produced
+by `runtime.getURL`: Firefox uses a per-profile UUID for its extension URL host.
+The path allowlist and document-bound pause remain enforced by the background.
+No WebExtension polyfill or other runtime dependency is required.
+
 ## State and ownership
 
 All application mutations enter the worker through an allowlisted message or a
-Chrome lifecycle/navigation/alarm event. One promise queue serializes those
+browser lifecycle/navigation/alarm event. One promise queue serializes those
 operations. Its only in-memory state is coordination; durable product state is
 read from storage. A failed operation does not strand the queue.
 
@@ -40,8 +56,9 @@ read from storage. A failed operation does not strand the queue.
 Settings formerly lived in Chrome sync. The entire list exceeded sync’s 8 KB
 per-item quota when category packs were combined. Migration writes sanitized
 local settings before removing only the known legacy Focusaurus sync keys.
-Subsequent settings remain local. Local storage access is restricted to trusted
-extension contexts. History retains today and the preceding six local calendar days, matching the
+Subsequent settings remain local. Chrome local storage access is explicitly restricted to trusted extension
+contexts. Firefox does not expose `local.setAccessLevel`; the Firefox build has
+no content scripts or externally connectable messaging. History retains today and the preceding six local calendar days, matching the
 shared week length. Older buckets are pruned on recovery, control-page reads,
 session transitions and hourly maintenance. Session records and recent-attempt arrays are bounded.
 
@@ -93,8 +110,9 @@ Revoking access during a session preserves its deadline and usable rules, but
 shows a warning in the control pages and an exclamation mark on the toolbar.
 Restoring access reconciles rules and pauses matching open tabs even when the
 rules themselves did not change. Permission events and returning to a control
-page refresh access status. The recovery button opens this extension's browser
-details; only the user changes its grants.
+page refresh access status. Chrome's recovery button opens extension details.
+Firefox's button calls `permissions.request` during the user gesture to show
+the native website-access prompt; only the user changes its grants.
 
 ## Worker and clock lifecycle
 
@@ -118,7 +136,7 @@ settings pages can configure state. The web-accessible blocked page can only
 read its blocked context and request a temporary pass. It cannot end a session,
 change settings, or delete history. Action lookup rejects inherited properties.
 
-The worker reads the target and site from Chrome’s sender URL, validates the
+The worker reads the target and site from the browser’s sender URL, validates the
 match, and records a visit once per document/session. A pause deadline lives in
 session storage and is checked again before granting a pass. UI countdowns are
 informational, not the enforcement mechanism. Ending a session or expiring an
@@ -144,7 +162,12 @@ rules, concurrency, migration, schedules, suspension, backup/deletion, keyboard
 behavior, both themes and reduced motion. Axe supplements the measured contrast
 checks; it does not replace human screen-reader or usability review.
 
-`npm run build` emits a deterministic ZIP with a file manifest and SHA-256,
+Firefox has an independent Selenium suite covering actual redirects, native
+permission recovery, event-page suspension, alarms, data management, both-theme
+accessibility and the actual action popup. Firefox temporary installations do
+not replace signed-installation/restart/update verification.
+
+`npm run build` emits a deterministic ZIP per browser with a file manifest and SHA-256,
 then verifies every decompressed byte. CI runs the same checks and tests the
 unpacked package. Publishing and store dashboard changes are separate actions.
 

@@ -1,3 +1,4 @@
+import { extensionApi as chrome, isFirefox } from '../shared/browser.js';
 /* ==========================================================================
    Storage access
    --------------------------------------------------------------------------
@@ -48,7 +49,8 @@ const DEFAULT_LOCAL = {
 /* --- Settings (local, with one-time legacy migration) ------------------- */
 
 export async function initializeStorage() {
-  await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
+  // Firefox has no setAccessLevel API. This extension has no content scripts.
+  if (!isFirefox) await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
   const { settings } = await chrome.storage.local.get('settings');
   if (!settings) {
     const legacy = await chrome.storage.sync.get(null);

@@ -6,10 +6,68 @@ not a claim of Chrome Web Store approval or publication. Publisher identity,
 support contact and domain remain undecided, as confirmed by the user.
 
 Initially reviewed and prepared on **2026-09-08**. See the September 12
-verification below for the current package. The user selected the first Chrome Web
+verification below for historical Chrome evidence and the Firefox follow-up for the current package. The user selected the first Chrome Web
 Store release and warm illustrated field-guide art direction. Sessions,
 schedules, blocking, temporary passes and attempt history are the release scope.
-Daily time budgets, browsing-time tracking, streak rewards and Firefox are deferred.
+Daily time budgets, browsing-time tracking and streak rewards are deferred.
+
+## Firefox follow-up · September 13, 2026
+
+The user authorized the Firefox build and GitHub push after Chrome preparation.
+Both browser candidates now share the product runtime, with browser-specific
+manifests generated at build time. No store submission, signing or hosting has
+been performed. See [Firefox release and signing](FIREFOX-RELEASE.md) for the
+concrete submission steps and artifact paths.
+
+- Firefox uses a Manifest V3 nonpersistent module event page; Chrome retains its
+  service worker. Native Promise APIs require no runtime polyfill.
+- Sender validation binds the public extension ID and actual extension origin
+  separately. Firefox's URL host is a per-profile UUID. Minimum Firefox **153**
+  retains `MessageSender.documentId` and the per-document pause security check.
+- The website-access recovery button opens Firefox's native permission prompt.
+  Revocation prevents misleading starts; restoring access pauses matching tabs.
+- Doug's renderer creates SVG DOM nodes instead of inserting an HTML string.
+  Mozilla's package validator reports zero errors, notices or warnings.
+- Firefox's real toolbar popup exposed a 746px window around 420px content.
+  Explicit body and root widths fix it at 420px while preserving Chrome sizing.
+- Privacy policy 1.2 describes both browsers and seven-day local retention.
+  The Firefox manifest declares no data collection/transmission. Its stable
+  add-on ID is `focusaurus@itsmattguenther`.
+- Node 22+ is now required by the Firefox test toolchain; CI uses Node 24.
+  CI separately exercises Firefox minimum 153 and latest, with browser-specific
+  package artifacts. Pinned development dependencies remain outside both ZIPs.
+
+Local verification: Omarchy/Arch Linux, Node **26.8.1**, Chromium
+**152.0.7977.82**, Firefox **155.0.1**, Brave **153.1.95.101**. Static checks and **197 unit tests** pass.
+The **21 Chromium browser tests** pass against source and package, and the same
+**21 tests pass in Brave** against the Chrome package. Firefox's
+**9 package integration tests** cover category packs, concurrent writes, real
+redirects, query preservation, temporary passes, Locked mode, open tabs, SPA
+routes, event-page suspension, alarm recovery, native permission prompts,
+unattended expiry, schedules, backups, seven-day retention, history deletion,
+all five surfaces in both themes, reduced motion, narrow reflow, and actual
+420px toolbar sizing. Local screenshots under `docs/review/firefox/` were inspected.
+
+Firefox tests use temporary add-on installation. Persistent signed installation,
+a full Firefox restart, upgrades, OS sleep/wake, human screen-reader use and
+private-window/browser-policy combinations remain pilot checks. Browser-managed
+restricted sites are outside effective blocking coverage. Firefox ESR below 153
+and Android are not qualified.
+
+Both ZIPs contain **49 runtime files** and are checked byte-for-byte after
+compression; matching inventories and checksums are generated in `dist/`.
+The Chrome ZIP is **774,969 bytes** and Firefox ZIP **775,051 bytes**. Their only
+content difference is the generated manifest. Repeated builds produce the same
+checksums. Runtime text is normalized to LF during staging, so Windows CRLF
+checkouts and Linux CI package the same source bytes. Brave needs no separate build or store submission; normal store
+installation/update checks remain part of the pilot.
+The official Mozilla linter's development-only dependency chain has unresolved
+npm advisories; see the explicit [tooling advisory](FIREFOX-RELEASE.md#tooling-advisory).
+This does not affect packaged runtime dependencies (there are none).
+
+The Chrome follow-up and earlier Windows evidence below describe older candidates;
+their file sizes, test counts and statements about not having run Firefox are
+historical, not current restrictions.
 
 ## Chrome follow-up · September 12, 2026
 

@@ -1,4 +1,4 @@
-# Product direction · first Chrome release
+# Product direction · first browser releases
 
 ## The product
 
@@ -14,7 +14,7 @@ their own product evidence.
 
 ## Audience and promise
 
-For individual Chrome users who want a voluntary focus companion. It is not
+For individual Chrome and Firefox desktop users who want a voluntary focus companion. It is not
 parental control, employee monitoring, clinical treatment, or an unbreakable
 restriction system. No medical or productivity-outcome claims are made.
 

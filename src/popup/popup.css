@@ -6,12 +6,12 @@
    Its job is a legible glance and three fast actions.
    ========================================================================== */
 
-/* Chrome sizes the toolbar window from the root's intrinsic width. A viewport
-   cap here feeds its small initial window back into layout and prevents growth. */
+/* Chrome sizes from the root; Firefox also measures the body's preferred width.
+   Keep both explicit so neither browser sizes from its initial popup viewport. */
 html { width: 420px; min-width: 420px; }
 
 body {
-  width: 100%;
+  width: 420px;
   max-height: 580px;
   overflow-y: auto;
   overflow-x: hidden;
