@@ -26,6 +26,18 @@ export function renderDoug(el, mood = DEFAULT_MOOD, opts = {}) {
   // Frequent state refreshes must not restart animation or image decoding.
   if (el.dataset.mood === resolved && el.dataset.name === name) return el.firstElementChild;
   el.dataset.mood = resolved; el.dataset.name = name;
-  el.innerHTML = dougSVG(resolved, opts);
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('class', `doug ${opts.breathing === false ? '' : 'doug--breathing'} ${opts.className || ''}`);
+  svg.setAttribute('viewBox', opts.viewBox || '0 0 200 200');
+  svg.dataset.mood = resolved;
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', `${name} the Focusaurus, looking ${MOODS[resolved].label.toLowerCase()}`);
+  const body = document.createElementNS(svgNS, 'g');
+  body.setAttribute('class', 'doug__body');
+  const art = document.createElementNS(svgNS, 'image');
+  art.setAttribute('href', opts.assetBase ? `${opts.assetBase}/doug-${resolved}.webp` : new URL(`../../assets/art/doug-${resolved}.webp`, import.meta.url).href);
+  art.setAttribute('width', '200'); art.setAttribute('height', '200');
+  body.append(art); svg.append(body); el.replaceChildren(svg);
   return el.firstElementChild;
 }

@@ -18,9 +18,44 @@ jobs:
           FOCUSAURUS_EXTENSION_PATH: dist/extension
       - uses: actions/upload-artifact@v4
         with:
-          name: focusaurus-release-candidate
+          name: focusaurus-chrome-candidate
           path: |
-            dist/*.zip
-            dist/*.sha256
+            dist/focusaurus-[0-9]*.zip
+            dist/focusaurus-[0-9]*.sha256
             dist/package-manifest.json
             dist/privacy/
+
+  firefox:
+    name: Firefox ${{ matrix.firefox }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        firefox: ['153.0', 'latest']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: browser-actions/setup-firefox@v1
+        id: firefox
+        with:
+          firefox-version: ${{ matrix.firefox }}
+      - run: npm ci
+      - run: npm run verify:firefox
+        env:
+          FOCUSAURUS_FIREFOX_PATH: ${{ steps.firefox.outputs.firefox-path }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: focusaurus-firefox-${{ matrix.firefox }}-candidate
+          path: |
+            dist/focusaurus-firefox-*.zip
+            dist/focusaurus-firefox-*.sha256
+            dist/firefox-package-manifest.json
+            dist/privacy/
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: firefox-${{ matrix.firefox }}-test-results
+          path: test-results/firefox/

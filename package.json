@@ -2,7 +2,7 @@
   "name": "focusaurus",
   "version": "1.0.0",
   "private": true,
-  "description": "Chrome extension that blocks distracting sites during focus sessions, with a dinosaur who notices.",
+  "description": "A private browser extension that blocks distracting sites during focus sessions, with a dinosaur who notices.",
   "type": "module",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
@@ -14,14 +14,21 @@
     "build": "node dev/build.mjs",
     "review": "node dev/capture-review.mjs",
     "store-art": "node dev/build-store-art.mjs",
-    "verify": "npm run check && npm test && npm run test:browser && npm run build"
+    "verify": "npm run check && npm test && npm run test:browser && npm run build",
+    "build:chrome": "node dev/build.mjs chrome",
+    "build:firefox": "node dev/build.mjs firefox",
+    "lint:firefox": "web-ext lint --source-dir dist/firefox/extension --warnings-as-errors",
+    "test:firefox": "node --test --test-timeout=120000 test/firefox/*.spec.mjs",
+    "verify:firefox": "npm run build:firefox && npm run lint:firefox && npm run test:firefox"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
-    "fflate": "0.8.3"
+    "fflate": "0.8.3",
+    "selenium-webdriver": "4.49.0",
+    "web-ext": "10.6.0"
   }
 }
