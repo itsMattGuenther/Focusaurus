@@ -1,3 +1,4 @@
+import { extensionApi as chrome } from '../shared/browser.js';
 /** Check effective host grants, including permissions withheld in browser controls. */
 export async function siteAccess(sites) {
   try {

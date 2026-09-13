@@ -1,3 +1,4 @@
+import { extensionApi as chrome } from '../shared/browser.js';
 import { renderDoug } from '../shared/doug.js';
 import { displayHost, parseInterstitial, safeExternalUrl } from '../shared/redirect.js';
 import { isOpenEnded } from '../shared/session.js';
