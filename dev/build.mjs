@@ -19,6 +19,13 @@ for (const target of targets) {
   for (const name of ['src', 'assets']) cpSync(join(root, name), join(extension, name), { recursive: true });
   writeFileSync(join(extension, 'manifest.json'), JSON.stringify(manifestFor(manifest, target), null, 2) + '\n');
   const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]);
+  // Windows prototype checkouts may retain CRLF while Linux CI uses LF.
+  // Normalize runtime text in the staging directory so both produce the same ZIP.
+  for (const file of walk(extension)) {
+    if (/\.(js|css|html|svg|txt)$/.test(file)) {
+      writeFileSync(file, readFileSync(file, 'utf8').replaceAll('\r\n', '\n'));
+    }
+  }
   const entries = Object.fromEntries(walk(extension).sort().map((file) => {
     const path = relative(extension, file).replaceAll('\\', '/');
     assert.ok(/^(manifest\.json|src\/.*\.(js|css|html)|assets\/.*\.(png|svg|webp|woff2|txt))$/.test(path), `unexpected runtime file ${path}`);
