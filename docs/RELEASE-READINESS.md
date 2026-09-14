@@ -11,6 +11,25 @@ Store release and warm illustrated field-guide art direction. Sessions,
 schedules, blocking, temporary passes and attempt history are the release scope.
 Daily time budgets, browsing-time tracking and streak rewards are deferred.
 
+## Chrome publication preparation · September 14, 2026
+
+Public-facing documentation, contributor guidance, a readable `PRIVACY.md`,
+and [the Chrome publishing checklist](CHROME-PUBLISHING.md) are prepared.
+[The public repository review](PUBLIC-REPO-REVIEW.md) records history, metadata,
+Actions logs and artifact checks without publishing raw audit data.
+
+The last main-branch Chrome CI run exposed an early settings click being ignored.
+Settings now registers every event handler before waiting for initial state.
+A regression holds the first reply and confirms that history deletion still
+opens its confirmation dialog. It fails against the old startup order.
+
+Current local validation: static checks, 197 unit tests, 21 Chromium tests
+against source and package, and 9 Firefox package tests pass. Mozilla lint has
+zero errors, warnings or notices. No Chrome Web Store submission was made.
+Today's Chrome archive is `dist/focusaurus-1.0.0.zip`; the generated checksum and
+inventory beside it are authoritative. Older sizes and hashes below describe
+previous candidates.
+
 ## Firefox follow-up · September 13, 2026
 
 The user authorized the Firefox build and GitHub push after Chrome preparation.

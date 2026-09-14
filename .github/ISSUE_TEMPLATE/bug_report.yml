@@ -1,0 +1,26 @@
+name: Something isn't working
+description: Help us reproduce a problem with Focusaurus.
+body:
+  - type: markdown
+    attributes:
+      value: Please use example sites and remove private details. Do not share passwords, settings exports, or personal browsing history. For vulnerabilities, use the private security reporting link in SECURITY.md.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and Focusaurus version
+      placeholder: Chrome 152, Focusaurus 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you do?
+      description: Short steps that let someone else reproduce the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
