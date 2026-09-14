@@ -56,13 +56,11 @@ review its public contact details as carefully as a Public release.
 
 ## 3. Check the privacy and support links
 
-Once this repository is public, its readable policy is available at:
+The repository is public. Its readable policy is available at:
 
 `https://github.com/itsMattGuenther/Focusaurus/blob/main/PRIVACY.md`
 
-The repository is currently private pending completion of the history privacy
-cleanup. Do not submit its private links to the store. If the project moves to
-a different public account or repository, update all listing links accordingly.
+This link was verified without authentication on September 14, 2026.
 
 Open that link in a signed-out/private browser window and confirm the complete
 policy is readable without a login. You can use it as the public HTTPS policy
@@ -123,8 +121,16 @@ Upload these prepared images:
 | Small promotional tile | `docs/store-assets/promo-small.png` (440 × 280) |
 | Optional marquee tile | `docs/store-assets/promo-marquee.png` (1400 × 560) |
 
-Add your homepage, support link, and contact details where requested. Review
-how the listing looks, especially its screenshots and first few sentences.
+Upload the screenshots in numeric order. The prepared screenshot and promo
+files are RGB PNGs without transparency, in the required dimensions.
+
+Leave **Global promo video** blank and **Official URL** set to **None** unless
+you have a video or a verified website to use. Set **Homepage URL** to
+`https://github.com/itsMattGuenther/Focusaurus` and **Support URL** to
+`https://github.com/itsMattGuenther/Focusaurus/issues`. Leave **Mature content**
+off. Review how the listing looks, especially its screenshots and first few
+sentences. The small promo tile is required by Google's image guidance; the
+marquee is optional and already prepared.
 
 [Image requirements](https://developer.chrome.com/docs/webstore/images).
 
@@ -134,14 +140,17 @@ Copy the single-purpose statement and permission explanations from
 [STORE-LISTING.md](STORE-LISTING.md). Select **No remote code** and supply the
 privacy-policy URL from step 3.
 
-Disclose the actual local processing: Focusaurus examines website addresses
-to decide what to block and stores site-level blocked-attempt/pass counts and
-session timestamps. It does not read page contents or send this information
-to the publisher. The relevant dashboard categories include **Web history**
-for addresses and **User activity** for local attempt/session records; map the
-current wording to this behavior. Do not select a blanket "no user data"
-answer merely because nothing leaves the device. Only select categories the
-extension actually handles and confirm the limited-use certifications truthfully.
+For version 1.0.0 and the current dashboard, check **Web history** and **User
+activity**. Focusaurus examines website addresses to decide what to block and
+stores site-level blocked-attempt/pass counts and session timestamps. This
+mapping reflects that local processing; it does not mean data is sent to the
+publisher. Leave the other seven data categories unchecked.
+
+Check all three limited-use certifications: the extension does not sell or
+transfer data to third parties, use data for unrelated purposes, or use data
+for creditworthiness or lending. These statements match the current code and
+privacy policy. With **No remote code** selected, leave its disabled
+justification field blank.
 
 This guidance follows [Google's privacy fields](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)
 and [local-data disclosure requirement](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq).

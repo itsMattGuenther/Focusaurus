@@ -58,10 +58,32 @@ or scheduled focus sessions, with local attempt history and a dinosaur companion
 Remote code: **none**. Remote fonts/assets: **none**. Third-party runtime SDKs: **none**.
 Local history retention: today and the previous six local calendar days. No runtime data is sent to the publisher.
 
-Review the dashboard’s exact data declarations against the bundled privacy
-policy: addresses are processed locally for blocking, local history contains
-site-level counts and session timestamps, and original targets are visible in
-blocked-page addresses (and may therefore enter Chrome’s own history/sync).
+### Host permission justification — ready to paste
+
+Focusaurus lets users choose any HTTP or HTTPS website or path to pause during
+focus sessions, so the required hosts cannot be limited to a fixed list. Website
+access lets Chrome redirect matching top-level navigations, lets Focusaurus check
+matching open tabs and in-page navigation changes, and supports temporary passes
+requested by the user. Website addresses are processed locally. Focusaurus does
+not inject scripts into websites, read page contents or form fields, or transmit
+browsing data to the publisher or third parties.
+
+### Data usage and privacy policy
+
+For version 1.0.0, select **Web history** and **User activity**. Leave the other
+seven data categories unchecked. These selections reflect local website-address
+processing, site-level blocked-attempt/pass counts, and session timestamps.
+Original targets also appear in blocked-page addresses and may enter the
+browser's own history/sync. The extension sends none of this to the publisher.
+Google requires disclosure of local processing too; see its
+[user data FAQ](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq).
+
+Check all three certifications about not selling/transferring data outside
+approved uses, not using it for unrelated purposes, and not using it for
+creditworthiness or lending. Select **No, I am not using remote code** and leave
+the disabled remote-code justification blank.
+
+Privacy policy URL: `https://github.com/itsMattGuenther/Focusaurus/blob/main/PRIVACY.md`
 
 ## Files
 
