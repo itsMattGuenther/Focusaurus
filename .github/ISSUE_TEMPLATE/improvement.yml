@@ -1,0 +1,15 @@
+name: An idea or improvement
+description: Suggest clearer wording, a design improvement, or a useful feature.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to make easier?
+      description: Tell us about the situation, without including private browsing details.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What might help?
+      description: A suggestion is welcome, but you do not need to have a solution.

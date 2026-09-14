@@ -437,11 +437,6 @@ els.importFile.addEventListener('change', async () => {
   });
 });
 
-/* --- Boot ---------------------------------------------------------------- */
-
-buildDayButtons();
-await refresh().catch(feedback);
-watchState(refresh);
 document.getElementById('themeSelect').addEventListener('change', (e) => save({ theme: e.target.value }));
 
 function confirmAction(title, text, label) {
@@ -468,3 +463,11 @@ document.getElementById('clearHistoryBtn').addEventListener('click', (e) => act(
 setInterval(() => {
   if (state?.settings?.schedule?.enabled) renderSchedule(state.settings.schedule);
 }, 30_000);
+
+/* --- Boot ---------------------------------------------------------------- */
+
+// Wire every control before waiting for background state. A slow first read
+// must not leave visible theme/history controls without their event handlers.
+buildDayButtons();
+watchState(refresh);
+await refresh().catch(feedback);
