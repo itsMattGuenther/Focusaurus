@@ -25,3 +25,21 @@ test-results/
 playwright-report/
 docs/review/
 __pycache__/
+
+# Local credentials and browser/profile data
+.env
+.env.*
+!.env.example
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.xpi
+.npmrc
+.web-ext-config.*
+web-ext-artifacts/
+playwright/.auth/
+*.sqlite
+*.sqlite3
+*.har

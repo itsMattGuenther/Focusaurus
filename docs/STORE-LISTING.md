@@ -1,5 +1,7 @@
 # Chrome Web Store submission kit
 
+For the full publishing sequence, see [the Chrome publishing checklist](CHROME-PUBLISHING.md).
+
 Product: **Focusaurus** · version **1.0.0** · category **Productivity** · language **English**.
 
 ## Short description
@@ -78,7 +80,7 @@ page with `npm run build`.
 
 - [ ] Confirm the developer account/publisher display name and public support email.
 - [ ] Pay the one-time registration fee, verify the contact email, enable two-step verification, and complete the applicable trader declaration.
-- [ ] Host `dist/privacy/` at the publisher’s chosen publicly accessible HTTPS URL.
+- [ ] Verify the public `PRIVACY.md` URL from the publishing checklist, or host `dist/privacy/` at your chosen HTTPS URL.
 - [ ] Enter that exact privacy URL and publisher contact in the dashboard.
 - [ ] Review the final product/art and run the manual checks in RELEASE-READINESS.md.
 - [ ] Upload archive and images; verify the permission and data-use declarations.

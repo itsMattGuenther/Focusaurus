@@ -200,10 +200,25 @@ test('clear history confirms in the UI, preserves settings and the current sessi
   const blocked = await e.context.newPage();
   await blocked.goto(`${e.url('blocked/blocked.html')}?site=${site.id}#url=https://example.com/`);
   await expect(blocked.locator('#attemptsValue')).toHaveText('First time today');
-  const settings = await e.context.newPage(); await settings.goto(e.url('options/options.html'));
+  const settings = await e.context.newPage();
+  // Hold the first background reply so the user can click before initialization
+  // finishes. Startup must bind visible controls before awaiting that reply.
+  await settings.addInitScript(() => {
+    const original = chrome.runtime.sendMessage.bind(chrome.runtime);
+    let first = true;
+    chrome.runtime.sendMessage = (message) => {
+      if (message.action === 'getState' && first) {
+        first = false;
+        return new Promise((resolve) => { globalThis.releaseInitialState = () => original(message).then(resolve); });
+      }
+      return original(message);
+    };
+  });
+  await settings.goto(e.url('options/options.html'));
   await settings.locator('#clearHistoryBtn').click();
   await expect(settings.locator('#confirmDialog')).toBeVisible();
   await expect(settings.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+  await settings.evaluate(() => globalThis.releaseInitialState());
   await settings.locator('#confirmBtn').click();
   await expect(settings.locator('#dataNote')).toHaveText('History cleared.');
   const state = await e.send('getState');
