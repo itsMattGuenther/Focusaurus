@@ -9,9 +9,24 @@ it becomes installable from the store; approval today is not guaranteed.
 
 ## 1. Choose the account and public identity
 
-Use the Google account that should own Focusaurus long term. Choose your
-publisher display name and a support/contact email you are comfortable using.
-A project email can keep support separate from personal mail.
+Use the Google account that should own Focusaurus long term. A dedicated project
+account can keep publishing and support separate from personal mail. Choose a
+publisher display name such as **Focusaurus** and a project contact email you
+are comfortable making public. Google displays both the publisher name and the
+verified contact email on the extension listing; the contact email can differ
+from the Google account used to sign in.
+
+Use accurate information wherever Google requests legal identity or payment
+details. A project display name does not hide information that Google requires
+traders to disclose; read the next step before entering a personal address or
+phone number.
+
+You can keep your existing GitHub account and normal author credit. Use GitHub's
+noreply email for commits and enable **Keep my email addresses private** and
+**Block command line pushes that expose my email** in
+[GitHub email settings](https://github.com/settings/emails). Configure the noreply
+commit email on every development machine; this checkout's setting does not
+carry over to other computers.
 
 Enable Google **2-Step Verification**. Sign in to the
 [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole),
@@ -30,6 +45,13 @@ contact verification it requests. Make the declaration that matches your
 actual circumstances; a free extension is not automatically a non-trader.
 Review which details the dashboard says it will show publicly.
 
+Google says trader verification includes a legal name, contact phone number and
+address, and that this information appears publicly on the extension listing.
+Being an individual does not automatically mean you are a non-trader. Select
+non-trader only if your activity fits that definition, outside your trade,
+business, craft or profession. An Unlisted pilot still has a store listing;
+review its public contact details as carefully as a Public release.
+
 [Google's trader verification FAQ](https://developer.chrome.com/docs/webstore/program-policies/trader-verification-faq).
 
 ## 3. Check the privacy and support links
@@ -37,6 +59,10 @@ Review which details the dashboard says it will show publicly.
 Once this repository is public, its readable policy is available at:
 
 `https://github.com/itsMattGuenther/Focusaurus/blob/main/PRIVACY.md`
+
+The repository is currently private pending completion of the history privacy
+cleanup. Do not submit its private links to the store. If the project moves to
+a different public account or repository, update all listing links accordingly.
 
 Open that link in a signed-out/private browser window and confirm the complete
 policy is readable without a login. You can use it as the public HTTPS policy
