@@ -3,9 +3,9 @@
 **A little room to focus.**
 
 Focusaurus helps you pause distracting websites and get back to what you meant
-to do—with Doug, a dinosaur who keeps things gentle.
+to do - with Doug, a dinosaur who keeps things gentle.
 
-Choose the sites that pull you away, start a focus session, and carry on with
+Choose the sites that distract you or pull you away from your work, start a focus session, and carry on with
 your day. If you open a blocked site, Doug gives you a moment to pause before
 you decide what to do next.
 
@@ -42,7 +42,7 @@ settings and clear your history whenever you like.
 
 ## Get Focusaurus
 
-**The Chrome Web Store release is being prepared.** A store installation link
+**The Chrome Web Store release is currently pending approval by Google** A store installation link
 will appear here when it is available. The Chrome release also works in Brave
 and standard Chromium browsers. A Firefox desktop version is prepared too;
 its store release will follow separately.
